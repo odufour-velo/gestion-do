@@ -11,12 +11,12 @@
         <label>Nom de l'épreuve</label>
         <input type="text" id="nom" oninput="generateID()" required placeholder="ex: Grand Prix de la Ville">
         
-        <p>Identifiant généré : <span id="idDisplay">---</span></p>
+        <p class="hidden">Identifiant généré : <span id="idDisplay">---</span></p>
 
         <label>Type d'organisation</label>
         <div class="radio-group">
-            <label><input type="radio" name="typeOrg" value="cat" checked onclick="toggleMode()"> Épreuves Multi-Catégories</label>
-            <label><input type="radio" name="typeOrg" value="etapes" onclick="toggleMode()"> Course par Étapes</label>
+            <label><input type="radio" name="typeOrg" value="cat" checked onclick="toggleMode()">Course(s) sur une journée</label>
+            <label><input type="radio" name="typeOrg" value="etapes" onclick="toggleMode()">Course par Étapes</label>
         </div>
 
         <div style="display: flex; gap: 10px;">
@@ -25,7 +25,7 @@
         </div>
         
         <div id="dateCommuneGroup">
-            <label>Date (commune à toutes les catégories)</label>
+            <label>Date</label>
             <input type="date" id="dateCommune">
         </div>
         </div>
@@ -46,7 +46,8 @@
         <input type="tel" id="tel" placeholder="Téléphone">
         </div>
 
-        <button type="submit" class="btn-save">Enregistrer dans la Sheet</button>
+        <div id="statusMessage" class="status-hidden"></div>
+        <button type="submit" class="btn-save">Enregistrer</button>
     </form>
     <?!= include('Web/FormJS'); ?>
   </body>

@@ -48,40 +48,61 @@
       container.appendChild(div);
     }
 
-    // Initialisation
+    // InitialiZation
     addItem();
     generateID();
 
     document.getElementById('epreuveForm').onsubmit = function(e) {
-      e.preventDefault();
-      const epreuves = [];
-      const rows = document.querySelectorAll('.epreuve-item');
-      
-      rows.forEach(row => {
-        epreuves.push({
-          date: mode === 'cat' ? document.getElementById('dateCommune').value : row.querySelector('.row_date').value,
-          categorie: row.querySelector('.row_cat').value,
-          hDossard: row.querySelector('.row_doss').value,
-          hDepart: row.querySelector('.row_dep').value
+        e.preventDefault();
+
+        // Get button and status elements
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMessage');
+        
+        // DIsable button and prepare status
+        btn.disabled = true;
+        btn.innerText = "Envoi en cours...";
+        status.className = "status-hidden"; // Reinitialize status
+
+        const epreuves = [];
+        const rows = document.querySelectorAll('.epreuve-item');
+        
+        rows.forEach(row => {
+            epreuves.push({
+            date: mode === 'cat' ? document.getElementById('dateCommune').value : row.querySelector('.row_date').value,
+            categorie:    row.querySelector('.row_cat').value,
+            hDossard:     row.querySelector('.row_doss').value,
+            hDepart:      row.querySelector('.row_dep').value
+            });
         });
-      });
 
-      const payload = {
-        id: document.getElementById('idDisplay').innerText,
-        nom: document.getElementById('nom').value,
-        lieu: document.getElementById('lieu').value,
-        discipline: document.getElementById('discipline').value,
-        isEtapes: mode === 'etapes',
-        engagement: document.getElementById('engagement').value,
-        grille: document.getElementById('grille').value,
-        telephone: document.getElementById('tel').value,
-        mail: document.getElementById('mail').value,
-        epreuves: epreuves
-      };
+        const payload = {
+            id: document.getElementById('idDisplay').innerText,
+            nom: document.getElementById('nom').value,
+            lieu: document.getElementById('lieu').value,
+            discipline: document.getElementById('discipline').value,
+            isEtapes: mode === 'etapes',
+            engagement: document.getElementById('engagement').value,
+            grille: document.getElementById('grille').value,
+            telephone: document.getElementById('tel').value,
+            mail: document.getElementById('mail').value,
+            epreuves: epreuves
+        };
 
-      google.script.run.withSuccessHandler(() => {
-        alert("Données enregistrées avec succès !");
-        google.script.host.close();
-      }).processForm(payload);
-    };
+        // Call server and manage success / failure
+        google.script.run
+            .withSuccessHandler(() => {
+                status.innerText = "✅ Données enregistrées avec succès !";
+                status.className = "status-hidden status-success";
+                btn.innerText = "Enregistré !";
+            })
+            .withFailureHandler((error) => {
+            // Enable button in case of error
+            status.innerText = "❌ Erreur : " + error.message;
+            status.className = "status-hidden status-error";
+            btn.disabled = false;
+            btn.innerText = "Réessayer l'envoi";
+            })
+            .processForm(payload);
+        };
 </script>
