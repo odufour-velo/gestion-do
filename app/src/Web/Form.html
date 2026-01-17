@@ -5,31 +5,24 @@
     <?!= include('Web/FormCSS'); ?>
   </head>
   <body>
-    <form id="epreuveForm">
+    <form id="epreuveForm" onsubmit="handleFormSubmit(event)">
         <div class="card">
         <h3>Informations Générales</h3>
-        <label>Nom de l'épreuve</label>
-        <input type="text" id="nom" oninput="generateID()" required placeholder="ex: Grand Prix de la Ville">
-        
-        <p class="hidden">Identifiant généré : <span id="idDisplay">---</span></p>
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1"><label>Nom de l'épreuve</label><input type="text" id="name" required placeholder="ex: Grand Prix de la Ville"></div>
+            <div style="flex:1"><label>Organisateur</label><input type="text" id="organizer" required></div>
+            <div style="flex:1"><label>Date</label><input type="date" id="date" required></div>
+            <div style="flex:1"><label>Lieu</label><input type="text" id="location" required></div>
+            <div style="flex:1"><label>Discipline</label><input type="text" id="discipline" required></div>
+        </div>
+        <p class="hidden">Identifiant généré : <span id="uuid">---</span></p>        
 
         <label>Type d'organisation</label>
         <div class="radio-group">
             <label><input type="radio" name="typeOrg" value="cat" checked onclick="toggleMode()">Course(s) sur une journée</label>
             <label><input type="radio" name="typeOrg" value="etapes" onclick="toggleMode()">Course par Étapes</label>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <div style="flex:1"><label>Lieu</label><input type="text" id="lieu" required></div>
-            <div style="flex:1"><label>Discipline</label><input type="text" id="discipline"></div>
-        </div>
+        </div>      
         
-        <div id="dateCommuneGroup">
-            <label>Date</label>
-            <input type="date" id="dateCommune">
-        </div>
-        </div>
-
         <div class="card">
         <h3 id="sectionTitle">Catégories</h3>
         <div id="itemsContainer"></div>
@@ -42,12 +35,12 @@
         <input type="text" id="grille" placeholder="Grille de prix" style="margin-top:5px">
         
         <label>Contact</label>
-        <input type="email" id="mail" placeholder="Email">
-        <input type="tel" id="tel" placeholder="Téléphone">
+        <input type="email" id="mail" placeholder="Email" required>
+        <input type="tel" id="phone" placeholder="Téléphone">
         </div>
 
         <div id="statusMessage" class="status-hidden"></div>
-        <button type="submit" class="btn-save">Enregistrer</button>
+        <button id="submitBtn" type="submit" class="btn-save">Enregistrer</button>
     </form>
     <?!= include('Web/FormJS'); ?>
   </body>

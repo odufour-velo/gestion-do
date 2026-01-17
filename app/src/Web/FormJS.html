@@ -1,13 +1,46 @@
 <script>
   let mode = 'cat';
 
-    function generateID() {
-      const nom = document.getElementById('nom').value.substring(0,3).toUpperCase();
-      const date = new Date();
-      const random = Math.floor(Math.random() * 900) + 100;
-      const id = nom + date.getFullYear().toString().substring(2) + "-" + random;
-      document.getElementById('idDisplay').innerText = id;
+    // Cleanup the text by removing special characters
+  function slugify(text) {
+    return text
+      .toString()
+      .normalize('NFD')                   // Separate accents from letters
+      .replace(/[\u0300-\u036f]/g, '')    // Delete accents
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '')                // Delete spaces
+      .replace(/[^\w-]+/g, '')            // Delete all non-word chars
+      .substring(0, 10);                  // Limit length
+  }
+
+  function updateUUID() {
+    const name = document.getElementById('name').value;
+    const organizer = document.getElementById('organizer').value;
+    const dateValue = document.getElementById('date').value; // Format YYYY-MM-DD
+    const location = document.getElementById('location').value;
+    const discipline = document.getElementById('discipline').value;
+
+    if (organizer && dateValue && location) {
+      const datePart = dateValue.replace(/-/g, ''); // 2026-01-17 -> 20260117
+      const orgaPart = slugify(organizer).toUpperCase();
+      const locPart  = slugify(location).toUpperCase();
+      
+      // Add a random 3-char hash to ensure uniqueness
+      //const hash = Math.random().toString(36).substring(2, 5).toUpperCase();
+
+      // Do not add hash for now
+      const uuid = `${datePart}-${locPart}-${orgaPart}`;
+      document.getElementById('uuid').innerText = uuid;
+    } else {
+      document.getElementById('uuid').innerText = "---";
     }
+  }
+
+  // Ajouter les écouteurs sur tous les champs requis
+  ['name', 'organizer', 'date', 'location', 'discipline'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateUUID);
+  });
 
     function toggleMode() {
       const isEtapes = document.getElementsByName('typeOrg')[1].checked;
@@ -17,7 +50,6 @@
       document.getElementById('btnAdd').innerText = isEtapes ? "+ Ajouter une étape" : "+ Ajouter une catégorie";
       document.getElementById('dateCommuneGroup').style.display = isEtapes ? "none" : "block";
       
-      // On vide et on remet une ligne propre
       document.getElementById('itemsContainer').innerHTML = "";
       addItem();
     }
@@ -50,43 +82,67 @@
 
     // InitialiZation
     addItem();
-    generateID();
 
-    document.getElementById('epreuveForm').onsubmit = function(e) {
+    function handleFormSubmit(e){
         e.preventDefault();
 
         // Get button and status elements
-        const btn = document.getElementById('submitBtn');
+        const form   = document.getElementById('epreuveForm');
+        const btn    = document.getElementById('submitBtn');
         const status = document.getElementById('statusMessage');
+
+        if (!form.checkValidity()) {
+            status.innerText = "⚠️ Veuillez remplir tous les champs obligatoires (*).";
+            status.className = "status-hidden status-error";
+            form.reportValidity(); 
+            return;
+        }
         
-        // DIsable button and prepare status
-        btn.disabled = true;
-        btn.innerText = "Envoi en cours...";
+        // Disable button and prepare status
+        btn.disabled     = true;
+        btn.innerText    = "Envoi en cours...";
         status.className = "status-hidden"; // Reinitialize status
 
         const epreuves = [];
         const rows = document.querySelectorAll('.epreuve-item');
+
+        if (rows.length === 0) {
+            status.innerText = "⚠️ Vous devez ajouter au moins une catégorie ou étape.";
+            status.className = "status-hidden status-error";
+            return;
+        }
         
         rows.forEach(row => {
+
+            const dateVal = mode === 'cat' ? document.getElementById('date').value : row.querySelector('.row_date').value;
+            const catVal = row.querySelector('.row_cat').value;
+
+            if (!dateVal || !catVal) {
+                status.innerText = "⚠️ La date et la catégorie sont obligatoires pour chaque ligne.";
+                status.className = "status-hidden status-error";
+                return;
+            }
+
             epreuves.push({
-            date: mode === 'cat' ? document.getElementById('dateCommune').value : row.querySelector('.row_date').value,
-            categorie:    row.querySelector('.row_cat').value,
-            hDossard:     row.querySelector('.row_doss').value,
-            hDepart:      row.querySelector('.row_dep').value
+                date: mode === 'cat' ? document.getElementById('date').value : row.querySelector('.row_date').value,
+                categorie:    row.querySelector('.row_cat').value,
+                hDossard:     row.querySelector('.row_doss').value,
+                hDepart:      row.querySelector('.row_dep').value
             });
+
         });
 
         const payload = {
-            id: document.getElementById('idDisplay').innerText,
-            nom: document.getElementById('nom').value,
-            lieu: document.getElementById('lieu').value,
+            id:         document.getElementById('uuid').innerText,
+            nom:        document.getElementById('name').value,
+            lieu:       document.getElementById('location').value,
             discipline: document.getElementById('discipline').value,
-            isEtapes: mode === 'etapes',
+            isEtapes:   mode === 'etapes',
             engagement: document.getElementById('engagement').value,
-            grille: document.getElementById('grille').value,
-            telephone: document.getElementById('tel').value,
-            mail: document.getElementById('mail').value,
-            epreuves: epreuves
+            grille:     document.getElementById('grille').value,
+            telephone:  document.getElementById('phone').value,
+            mail:       document.getElementById('mail').value,
+            epreuves:   epreuves
         };
 
         // Call server and manage success / failure
