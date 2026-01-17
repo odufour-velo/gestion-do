@@ -13,7 +13,12 @@
             <div style="flex:1"><label>Organisateur</label><input type="text" id="organizer" required></div>
             <div style="flex:1"><label>Date</label><input type="date" id="date" required></div>
             <div style="flex:1"><label>Lieu</label><input type="text" id="location" required></div>
-            <div style="flex:1"><label>Discipline</label><input type="text" id="discipline" required></div>
+            <div style="flex:1">
+                <label>Discipline</label>
+                <select id="discipline" required>
+                    <option value="">Chargement...</option>
+                </select>
+            </div>
         </div>
         <p class="hidden">Identifiant généré : <span id="uuid">---</span></p>        
 

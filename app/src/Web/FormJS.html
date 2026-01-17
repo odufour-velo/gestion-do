@@ -37,11 +37,6 @@
     }
   }
 
-  // Ajouter les écouteurs sur tous les champs requis
-  ['name', 'organizer', 'date', 'location', 'discipline'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updateUUID);
-  });
-
     function toggleMode() {
       const isEtapes = document.getElementsByName('typeOrg')[1].checked;
       mode = isEtapes ? 'etapes' : 'cat';
@@ -161,4 +156,37 @@
             })
             .processForm(payload);
         };
+
+  
+
+  function loadDisciplines() {
+    google.script.run
+      .withSuccessHandler(function(list) {
+        const select = document.getElementById('discipline');
+        
+        // On vide le "Chargement..."
+        select.innerHTML = '<option value="">-- Choisir --</option>';
+        
+        // On ajoute chaque discipline
+        list.forEach(item => {
+          const option = document.createElement('option');
+          option.value = item;
+          option.text = item;
+          select.appendChild(option);
+        });
+      })
+      .getDisciplines();
+  }
+
+  // Execute on page load
+  window.onload = function() {
+    loadDisciplines();
+  };
+
+   // Listen the relevant fields to update UUID on the fly
+  ['name', 'organizer', 'date', 'location'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateUUID);
+  });
+  document.getElementById('discipline').addEventListener('change', updateUUID);
+
 </script>

@@ -1,5 +1,5 @@
 /**
- * Gère toutes les interactions avec la feuille de calcul
+ * Manage all interactions with the Google Sheets database
  */
 const Database = {
   SHEET_NAME: "Epreuves",
@@ -63,5 +63,26 @@ function processForm(data) {
     return Database.saveEpreuves(data);
   } catch (e) {
     throw new Error("Erreur lors de l'enregistrement : " + e.message);
+  }
+}
+
+/**
+ * Get the list for the Sheet "Discipline"
+ * @return {Array} Name list of disciplines
+ */
+function getDisciplines() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("Discipline");
+    
+    if (!sheet) return ["Route", "VTT", "Cyclo-cross"]; // Default values if sheet doesn't exist
+    
+    // Get all values from the first column
+    const values = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues();
+    
+    // Cleanup the array to return a simple list
+    return values.map(row => row[0]).filter(item => item && item !== "Nom"); 
+  } catch (e) {
+    return ["Erreur de chargement"];
   }
 }
