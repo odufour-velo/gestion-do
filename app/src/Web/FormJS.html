@@ -1,69 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <base target="_top">
-  <style>
-    body { font-family: 'Segoe UI', sans-serif; margin: 20px; color: #333; }
-    .card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .epreuve-item { background: #f0f7ff; border-left: 4px solid #2196F3; padding: 10px; margin-bottom: 10px; position: relative; }
-    label { display: block; margin: 10px 0 5px; font-weight: 600; font-size: 0.9em; }
-    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .radio-group { display: flex; gap: 20px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
-    .radio-group label { display: inline; font-weight: normal; cursor: pointer; }
-    button { padding: 10px 20px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
-    .btn-add { background: #4CAF50; color: white; margin-top: 10px; }
-    .btn-save { background: #2196F3; color: white; width: 100%; font-size: 1.1em; margin-top: 20px; }
-    #idDisplay { font-family: monospace; color: #d32f2f; background: #eee; padding: 2px 5px; }
-  </style>
-</head>
-<body>
-
-  <form id="epreuveForm">
-    <div class="card">
-      <h3>Informations Générales</h3>
-      <label>Nom de l'épreuve</label>
-      <input type="text" id="nom" oninput="generateID()" required placeholder="ex: Grand Prix de la Ville">
-      
-      <p>Identifiant généré : <span id="idDisplay">---</span></p>
-
-      <label>Type d'organisation</label>
-      <div class="radio-group">
-        <label><input type="radio" name="typeOrg" value="cat" checked onclick="toggleMode()"> Épreuves Multi-Catégories</label>
-        <label><input type="radio" name="typeOrg" value="etapes" onclick="toggleMode()"> Course par Étapes</label>
-      </div>
-
-      <div style="display: flex; gap: 10px;">
-        <div style="flex:1"><label>Lieu</label><input type="text" id="lieu" required></div>
-        <div style="flex:1"><label>Discipline</label><input type="text" id="discipline"></div>
-      </div>
-      
-      <div id="dateCommuneGroup">
-        <label>Date (commune à toutes les catégories)</label>
-        <input type="date" id="dateCommune">
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 id="sectionTitle">Catégories</h3>
-      <div id="itemsContainer"></div>
-      <button type="button" class="btn-add" id="btnAdd" onclick="addItem()">+ Ajouter une catégorie</button>
-    </div>
-
-    <div class="card">
-      <label>Engagement / Grille de prix</label>
-      <input type="text" id="engagement" placeholder="Tarif">
-      <input type="text" id="grille" placeholder="Grille de prix" style="margin-top:5px">
-      
-      <label>Contact</label>
-      <input type="email" id="mail" placeholder="Email">
-      <input type="tel" id="tel" placeholder="Téléphone">
-    </div>
-
-    <button type="submit" class="btn-save">Enregistrer dans la Sheet</button>
-  </form>
-
-  <script>
-    let mode = 'cat';
+<script>
+  let mode = 'cat';
 
     function generateID() {
       const nom = document.getElementById('nom').value.substring(0,3).toUpperCase();
@@ -148,6 +84,4 @@
         google.script.host.close();
       }).processForm(payload);
     };
-  </script>
-</body>
-</html>
+</script>
