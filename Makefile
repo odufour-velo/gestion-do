@@ -2,6 +2,8 @@
 IMAGE=clasp-docker
 SCRIPTID=1Pna-r9uyruBlI_1kB9YETYrXDPi531IoURTrKfVyfoCgYZ4FbDgdSQ9I
 
+TEST_DEPLOYMENT_ID=AKfycbwDcFNWfIRDqyVyTV3_FNeWxRECAvGY81XL1bivDaWZrQxjsGV_ojbbaAVLuwBVbwbEhw
+
 build:
 	docker build -t $(IMAGE) .
 
@@ -25,3 +27,5 @@ push:
 	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) push
 pull:
 	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) pull
+deploy-test: push
+	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) deploy --deploymentId $(TEST_DEPLOYMENT_ID) --description 'Auto-deploy'
