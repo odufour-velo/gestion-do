@@ -21,3 +21,7 @@ login:
 
 clone:
 	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) clone $(SCRIPTID)
+push:
+	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) push
+pull:
+	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) pull
