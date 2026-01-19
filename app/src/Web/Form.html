@@ -13,7 +13,7 @@
 
     <form id="declarationForm" onsubmit="handleFormSubmit(event)">
 
-        <div id="categoriesTemplate" class="hidden">
+        <div id="categoriesTemplate" class="categories hidden">
             <option value="">-- Choisir --</option>
         </div>
         
@@ -53,6 +53,8 @@
                 </div>
             </div>
             <div id="prixGeneraux" class="row hidden">
+                <div class="field"><label>Catégorie Min</label><select name="cat_min[]" class="categories"><option value="">-- Choisir --</option></select></div>
+                <div class="field"><label>Catégorie Max</label><select name="cat_max[]" class="categories"><option value="">-- Choisir --</option></select></div>
                 <div class="field"><label>Prix engagement (€)</label><input type="number" step="0.5" name="engagement"></div>
                 <div class="field"><label>Grille de prix</label><input type="text" name="grid"></div>
             </div>
