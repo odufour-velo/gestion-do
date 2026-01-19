@@ -10,39 +10,73 @@ const Database = {
    * @returns {boolean} True if saving was successful
    */
   saveEpreuves: function(data) {
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let sheet = ss.getSheetByName(this.SHEET_NAME);
-    
-    // Create the sheet with headers if it doesn't exist
-    if (!sheet) {
-      sheet = ss.insertSheet(this.SHEET_NAME);
-      sheet.appendRow([
-        "Identifiant", "Date", "Nom", "Lieu", "Discipline", 
-        "Catégorie", "Heure dossards", "Heure départ", 
-        "Étape ?", "Engagement", "Grille de prix", 
-        "Détails", "Téléphone", "Mail"
-      ]);
-    }
+  
+    const timestamp = new Date();
+    const uuid = data.uuid || "GENERER_ICI"; // Utilisez l'ID généré par votre JS
 
-    // Prepare data for insertion
-    const rowsToAppend = data.epreuves.map(ep => {
-      return [
-        data.id,
-        ep.date,
-        data.nom,
-        data.lieu,
+    // CAS 1 : ROUTE PAR ÉTAPES (Concaténation sur une seule ligne)
+    if (data.discipline.toLowerCase() === 'route' && data.type_route === 'course_ligne') {
+      
+      sheet.appendRow([
+        uuid,
         data.discipline,
-        ep.categorie,
-        ep.hDossard,
-        ep.hDepart,
-        data.isEtapes ? "Oui" : "Non",
-        data.engagement,
-        data.grille,
-        data.details,
-        data.telephone,
-        data.mail
-      ];
-    });
+        data.type_route,
+        data.organizer,
+        data.mail,
+        data.tel,
+        data.name,
+        data.date,
+        data.location,
+        "", // Pas de distance circuit
+        (data.h_doss ? data.h_doss.join(" | ") : ""),
+        (data.h_dep ? data.h_dep.join(" | ") : ""),
+        "", // Pas de tours
+        (data.dist ? data.dist.join(" | ") : ""),
+        (data.v_dep ? data.v_dep.join(" | ") : ""),
+        (data.v_arr ? data.v_arr.join(" | ") : ""),
+        (data.cat_min ? data.cat_min[0] : ""), // Souvent une seule cat pour les étapes
+        (data.cat_max ? data.cat_max[0] : ""),
+        data.engagement || "",
+        data.grid || "",
+        data.infos,
+        timestamp
+      ]);
+
+    } 
+    // CAS 2 : CIRCUIT OU AUTRES (Format Relationnel - Une ligne par épreuve)
+    else {
+      const nbEpreuves = data.h_dep ? data.h_dep.length : 1;
+      
+      for (let i = 0; i < nbEpreuves; i++) {
+        sheet.appendRow([
+          uuid,
+          data.discipline,
+          data.type_route || "N/A",
+          data.organizer,
+          data.mail,
+          data.tel,
+          data.name,
+          data.date,
+          data.location,
+          data.distance_circuit || "",
+          (data.h_doss ? data.h_doss[i] : ""),
+          (data.h_dep ? data.h_dep[i] : ""),
+          (data.tours ? data.tours[i] : ""),
+          (data.dist_totale ? data.dist_totale[i] : ""),
+          "", // Ville départ (N/A circuit)
+          "", // Ville arrivée (N/A circuit)
+          (data.cat_min ? data.cat_min[i] : ""),
+          (data.cat_max ? data.cat_max[i] : ""),
+          (data.prix_engag ? data.prix_engag[i] : (data.engagement || "")),
+          (data.grille_prix ? data.grille_prix[i] : (data.grid || "")),
+          data.infos,
+          timestamp
+        ]);
+      }
+    }
 
     // Grouped insertion for better performance
     const lastRow = sheet.getLastRow();
