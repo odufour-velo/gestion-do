@@ -198,10 +198,7 @@ function loadCategories() {
   google.script.run
     .withSuccessHandler(function(list) {
 
-      // On récupère tous les selects ayant la classe spécifiée
-      const allSelects = document.querySelectorAll('.categoriesTemplate');
-
-      // On boucle sur chaque select trouvé
+      const allSelects = document.querySelectorAll('.categories');
       allSelects.forEach(select => {
           
         const currentValue = select.value;
