@@ -1,192 +1,232 @@
 <script>
-  let mode = 'cat';
+let mode = 'cat';
 
-    // Cleanup the text by removing special characters
-  function slugify(text) {
-    return text
-      .toString()
-      .normalize('NFD')                   // Separate accents from letters
-      .replace(/[\u0300-\u036f]/g, '')    // Delete accents
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '')                // Delete spaces
-      .replace(/[^\w-]+/g, '')            // Delete all non-word chars
-      .substring(0, 10);                  // Limit length
+  // Cleanup the text by removing special characters
+function slugify(text) {
+  return text
+    .toString()
+    .normalize('NFD')                   // Separate accents from letters
+    .replace(/[\u0300-\u036f]/g, '')    // Delete accents
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '')                // Delete spaces
+    .replace(/[^\w-]+/g, '')            // Delete all non-word chars
+    .substring(0, 10);                  // Limit length
+}
+
+function updateUUID() {
+  const name = document.getElementById('name').value;
+  const organizer = document.getElementById('organizer').value;
+  const dateValue = document.getElementById('date').value; // Format YYYY-MM-DD
+  const location = document.getElementById('location').value;
+  const discipline = document.getElementById('discipline').value;
+
+  if (organizer && dateValue && location) {
+    const datePart = dateValue.replace(/-/g, ''); // 2026-01-17 -> 20260117
+    const orgaPart = slugify(organizer).toUpperCase();
+    const locPart  = slugify(location).toUpperCase();
+    
+    // Add a random 3-char hash to ensure uniqueness
+    //const hash = Math.random().toString(36).substring(2, 5).toUpperCase();
+
+    // Do not add hash for now
+    const uuid = `${datePart}-${locPart}-${orgaPart}`;
+    document.getElementById('uuid').innerText = uuid;
+  } else {
+    document.getElementById('uuid').innerText = "---";
   }
+}
 
-  function updateUUID() {
-    const name = document.getElementById('name').value;
-    const organizer = document.getElementById('organizer').value;
-    const dateValue = document.getElementById('date').value; // Format YYYY-MM-DD
-    const location = document.getElementById('location').value;
+const epreuvesList = document.getElementById('epreuvesList');
+const catOptions = `<option value="u15">U15</option><option value="u17">U17</option><option value="u19">U19</option><option value="senior">Senior</option><option value="master">Master</option>`;
+
+function renderEpreuves() {
     const discipline = document.getElementById('discipline').value;
+    const typeRoute = document.getElementById('type_route').value;
+    epreuvesList.innerHTML = '';
+    
+    if (!discipline) { epreuvesContainer.classList.add('hidden'); return; }
+    epreuvesContainer.classList.remove('hidden');
+    
+    document.getElementById('typeRoutePanel').classList.toggle('hidden', discipline !== 'route');
+    document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline === 'route' && typeRoute === 'circuit'));
+    document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline === 'route' && typeRoute === 'circuit'));
 
-    if (organizer && dateValue && location) {
-      const datePart = dateValue.replace(/-/g, ''); // 2026-01-17 -> 20260117
-      const orgaPart = slugify(organizer).toUpperCase();
-      const locPart  = slugify(location).toUpperCase();
-      
-      // Add a random 3-char hash to ensure uniqueness
-      //const hash = Math.random().toString(36).substring(2, 5).toUpperCase();
+    addEpreuveRow();
+}
 
-      // Do not add hash for now
-      const uuid = `${datePart}-${locPart}-${orgaPart}`;
-      document.getElementById('uuid').innerText = uuid;
+function addEpreuveRow() {
+    const discipline = document.getElementById('discipline').value;
+    const typeRoute = document.getElementById('type_route').value;
+    const div = document.createElement('div');
+    div.className = 'epreuve-item';
+
+    let rowHtml = '<div class="row">';
+    if (discipline === 'route' && typeRoute === 'circuit') {
+        rowHtml += `
+            <div class="field"><label>Dossards</label><input type="time" name="h_doss[]"></div>
+            <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
+            <div class="field"><label>Tours</label><input type="number" name="tours[]" oninput="calculerDistLigne(this)"></div>
+            <div class="field"><label>Distance Totale</label><input type="text" name="dist_totale[]" readonly placeholder="Calcul..."></div>
+            <div class="field"><label>Cat. Min</label><select name="cat_min[]">${catOptions}</select></div>
+            <div class="field"><label>Cat. Max</label><select name="cat_max[]">${catOptions}</select></div>
+            <div class="field"><label>Engag. (€)</label><input type="number" step="0.5" name="prix_engag[]"></div>
+            <div class="field"><label>Grille</label><input type="text" name="grille_prix[]"></div>
+        `;
+    } else if (discipline === 'route' && typeRoute === 'course_ligne') {
+        rowHtml += `
+            <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
+            <div class="field"><label>Ville Départ</label><input type="text" name="v_dep[]"></div>
+            <div class="field"><label>Ville Arrivée</label><input type="text" name="v_arr[]"></div>
+            <div class="field"><label>Distance (km)</label><input type="number" step="0.1" name="dist[]"></div>
+        `;
     } else {
-      document.getElementById('uuid').innerText = "---";
-    }
-  }
-
-    function toggleMode() {
-      const isEtapes = document.getElementsByName('typeOrg')[1].checked;
-      mode = isEtapes ? 'etapes' : 'cat';
-      
-      document.getElementById('sectionTitle').innerText = isEtapes ? "Étapes" : "Catégories";
-      document.getElementById('btnAdd').innerText = isEtapes ? "+ Ajouter une étape" : "+ Ajouter une catégorie";
-      document.getElementById('dateCommuneGroup').style.display = isEtapes ? "none" : "block";
-      
-      document.getElementById('itemsContainer').innerHTML = "";
-      addItem();
-    }
-
-    function addItem() {
-      const container = document.getElementById('itemsContainer');
-      const div = document.createElement('div');
-      div.className = 'epreuve-item';
-      
-      if (mode === 'cat') {
-        div.innerHTML = `
-          <div style="display:flex; gap:10px">
-            <input type="text" class="row_cat" placeholder="Catégorie (ex: U17, Open...)" required>
-            <input type="time" class="row_doss" title="Dossards">
-            <input type="time" class="row_dep" title="Départ">
-          </div>
+        rowHtml += `
+            <div class="field"><label>Dossards</label><input type="time" name="h_doss[]"></div>
+            <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
+            <div class="field"><label>Cat. Min</label><select name="cat_min[]">${catOptions}</select></div>
+            <div class="field"><label>Cat. Max</label><select name="cat_max[]">${catOptions}</select></div>
         `;
-      } else {
-        div.innerHTML = `
-          <div style="display:flex; flex-wrap:wrap; gap:10px">
-            <input type="date" class="row_date" style="flex:1" required>
-            <input type="text" class="row_cat" style="flex:1" placeholder="Nom de l'étape (ex: Etape 1)">
-            <input type="time" class="row_doss" style="flex:0.5">
-            <input type="time" class="row_dep" style="flex:0.5">
-          </div>
-        `;
-      }
-      container.appendChild(div);
+    }
+    rowHtml += `<button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">✕</button></div>`;
+    div.innerHTML = rowHtml;
+    epreuvesList.appendChild(div);
+}
+
+// Calcule la distance pour UNE ligne spécifique
+function calculerDistLigne(inputTours) {
+    const row = inputTours.closest('.row');
+    const distCircuit = document.getElementById('dist_circuit').value;
+    const tours = inputTours.value;
+    const output = row.querySelector('input[name="dist_totale[]"]');
+    
+    if (distCircuit && tours) {
+        const total = parseFloat(distCircuit) * parseInt(tours);
+        output.value = total.toFixed(2) + " km";
+    } else {
+        output.value = "";
+    }
+}
+
+// Recalcule TOUTES les lignes (utile si on change la distance du circuit après avoir saisi les tours)
+function calculerToutesDistances() {
+    const allTours = document.getElementsByName('tours[]');
+    allTours.forEach(input => calculerDistLigne(input));
+}
+
+
+    
+function handleFormSubmit(e){
+  
+e.preventDefault();
+
+// Get button and status elements
+const form   = document.getElementById('epreuveForm');
+const btn    = document.getElementById('submitBtn');
+const status = document.getElementById('statusMessage');
+
+if (!form.checkValidity()) {
+    status.innerText = "⚠️ Veuillez remplir tous les champs obligatoires (*).";
+    status.className = "status-hidden status-error";
+    form.reportValidity(); 
+    return;
+}
+
+// Disable button and prepare status
+btn.disabled     = true;
+btn.innerText    = "Envoi en cours...";
+status.className = "status-hidden"; // Reinitialize status
+
+const epreuves = [];
+const rows = document.querySelectorAll('.epreuve-item');
+
+if (rows.length === 0) {
+    status.innerText = "⚠️ Vous devez ajouter au moins une catégorie ou étape.";
+    status.className = "status-hidden status-error";
+    return;
+}
+
+rows.forEach(row => {
+
+    const dateVal = mode === 'cat' ? document.getElementById('date').value : row.querySelector('.row_date').value;
+    const catVal = row.querySelector('.row_cat').value;
+
+    if (!dateVal || !catVal) {
+        status.innerText = "⚠️ La date et la catégorie sont obligatoires pour chaque ligne.";
+        status.className = "status-hidden status-error";
+        return;
     }
 
-    // InitialiZation
-    addItem();
+    epreuves.push({
+        date: mode === 'cat' ? document.getElementById('date').value : row.querySelector('.row_date').value,
+        categorie:    row.querySelector('.row_cat').value,
+        hDossard:     row.querySelector('.row_doss').value,
+        hDepart:      row.querySelector('.row_dep').value
+    });
 
-    function handleFormSubmit(e){
-        e.preventDefault();
+});
 
-        // Get button and status elements
-        const form   = document.getElementById('epreuveForm');
-        const btn    = document.getElementById('submitBtn');
-        const status = document.getElementById('statusMessage');
+const payload = {
+    id:         document.getElementById('uuid').innerText,
+    nom:        document.getElementById('name').value,
+    lieu:       document.getElementById('location').value,
+    discipline: document.getElementById('discipline').value,
+    isEtapes:   mode === 'etapes',
+    engagement: document.getElementById('engagement').value,
+    grille:     document.getElementById('grille').value,
+    telephone:  document.getElementById('phone').value,
+    mail:       document.getElementById('mail').value,
+    epreuves:   epreuves
+};
 
-        if (!form.checkValidity()) {
-            status.innerText = "⚠️ Veuillez remplir tous les champs obligatoires (*).";
-            status.className = "status-hidden status-error";
-            form.reportValidity(); 
-            return;
-        }
-        
-        // Disable button and prepare status
-        btn.disabled     = true;
-        btn.innerText    = "Envoi en cours...";
-        status.className = "status-hidden"; // Reinitialize status
-
-        const epreuves = [];
-        const rows = document.querySelectorAll('.epreuve-item');
-
-        if (rows.length === 0) {
-            status.innerText = "⚠️ Vous devez ajouter au moins une catégorie ou étape.";
-            status.className = "status-hidden status-error";
-            return;
-        }
-        
-        rows.forEach(row => {
-
-            const dateVal = mode === 'cat' ? document.getElementById('date').value : row.querySelector('.row_date').value;
-            const catVal = row.querySelector('.row_cat').value;
-
-            if (!dateVal || !catVal) {
-                status.innerText = "⚠️ La date et la catégorie sont obligatoires pour chaque ligne.";
-                status.className = "status-hidden status-error";
-                return;
-            }
-
-            epreuves.push({
-                date: mode === 'cat' ? document.getElementById('date').value : row.querySelector('.row_date').value,
-                categorie:    row.querySelector('.row_cat').value,
-                hDossard:     row.querySelector('.row_doss').value,
-                hDepart:      row.querySelector('.row_dep').value
-            });
-
-        });
-
-        const payload = {
-            id:         document.getElementById('uuid').innerText,
-            nom:        document.getElementById('name').value,
-            lieu:       document.getElementById('location').value,
-            discipline: document.getElementById('discipline').value,
-            isEtapes:   mode === 'etapes',
-            engagement: document.getElementById('engagement').value,
-            grille:     document.getElementById('grille').value,
-            telephone:  document.getElementById('phone').value,
-            mail:       document.getElementById('mail').value,
-            epreuves:   epreuves
-        };
-
-        // Call server and manage success / failure
-        google.script.run
-            .withSuccessHandler(() => {
-                status.innerText = "✅ Données enregistrées avec succès !";
-                status.className = "status-hidden status-success";
-                btn.innerText = "Enregistré !";
-            })
-            .withFailureHandler((error) => {
-            // Enable button in case of error
-            status.innerText = "❌ Erreur : " + error.message;
-            status.className = "status-hidden status-error";
-            btn.disabled = false;
-            btn.innerText = "Réessayer l'envoi";
-            })
-            .processForm(payload);
-        };
+// Call server and manage success / failure
+google.script.run
+    .withSuccessHandler(() => {
+        status.innerText = "✅ Données enregistrées avec succès !";
+        status.className = "status-hidden status-success";
+        btn.innerText = "Enregistré !";
+    })
+    .withFailureHandler((error) => {
+    // Enable button in case of error
+    status.innerText = "❌ Erreur : " + error.message;
+    status.className = "status-hidden status-error";
+    btn.disabled = false;
+    btn.innerText = "Réessayer l'envoi";
+    })
+    .processForm(payload);
+};
 
   
 
-  function loadDisciplines() {
-    google.script.run
-      .withSuccessHandler(function(list) {
-        const select = document.getElementById('discipline');
-        
-        // On vide le "Chargement..."
-        select.innerHTML = '<option value="">-- Choisir --</option>';
-        
-        // On ajoute chaque discipline
-        list.forEach(item => {
-          const option = document.createElement('option');
-          option.value = item;
-          option.text = item;
-          select.appendChild(option);
-        });
-      })
-      .getDisciplines();
-  }
+function loadDisciplines() {
+  google.script.run
+    .withSuccessHandler(function(list) {
+      const select = document.getElementById('discipline');
+      
+      // On vide le "Chargement..."
+      select.innerHTML = '<option value="">-- Choisir --</option>';
+      
+      // On ajoute chaque discipline
+      list.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.text = item;
+        select.appendChild(option);
+      });
+    })
+    .getDisciplines();
+}
 
-  // Execute on page load
-  window.onload = function() {
-    loadDisciplines();
-  };
+// Execute on page load
+window.onload = function() {
+  loadDisciplines();
+};
 
-   // Listen the relevant fields to update UUID on the fly
-  ['name', 'organizer', 'date', 'location'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updateUUID);
-  });
-  document.getElementById('discipline').addEventListener('change', updateUUID);
-
+/*
+// Listen the relevant fields to update UUID on the fly
+['name', 'organizer', 'date', 'location'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateUUID);
+});
+document.getElementById('discipline').addEventListener('change', updateUUID);
+*/
 </script>
