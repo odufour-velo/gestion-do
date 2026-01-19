@@ -40,6 +40,7 @@ const epreuvesList = document.getElementById('epreuvesList');
 const catOptions = `<option value="u15">U15</option><option value="u17">U17</option><option value="u19">U19</option><option value="senior">Senior</option><option value="master">Master</option>`;
 
 function renderEpreuves() {
+
     const discipline = document.getElementById('discipline').value;
     const typeRoute = document.getElementById('type_route').value;
     epreuvesList.innerHTML = '';
@@ -61,7 +62,7 @@ function addEpreuveRow() {
     div.className = 'epreuve-item';
 
     let rowHtml = '<div class="row">';
-    if (discipline === 'route' && typeRoute === 'circuit') {
+    if (discipline.toLowerCase() === 'route' && typeRoute === 'circuit') {
         rowHtml += `
             <div class="field"><label>Dossards</label><input type="time" name="h_doss[]"></div>
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
@@ -72,7 +73,7 @@ function addEpreuveRow() {
             <div class="field"><label>Engag. (€)</label><input type="number" step="0.5" name="prix_engag[]"></div>
             <div class="field"><label>Grille</label><input type="text" name="grille_prix[]"></div>
         `;
-    } else if (discipline === 'route' && typeRoute === 'course_ligne') {
+    } else if (discipline.toLowerCase() === 'route' && typeRoute === 'course_ligne') {
         rowHtml += `
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
             <div class="field"><label>Ville Départ</label><input type="text" name="v_dep[]"></div>
