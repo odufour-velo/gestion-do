@@ -15,7 +15,7 @@ const Database = {
     let sheet = ss.getSheetByName(this.SHEET_NAME);
   
     const timestamp = new Date();
-    const uuid = data.uuid || "GENERER_ICI"; // Utilisez l'ID généré par votre JS
+    const uuid = generateUUID(data);
 
     // CAS 1 : ROUTE PAR ÉTAPES (Concaténation sur une seule ligne)
     if (data.discipline.toLowerCase() === 'route' && data.type_route === 'course_ligne') {
@@ -77,11 +77,6 @@ const Database = {
         ]);
       }
     }
-
-    // Grouped insertion for better performance
-    const lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow + 1, 1, rowsToAppend.length, rowsToAppend[0].length)
-         .setValues(rowsToAppend);
          
     return true;
   }
