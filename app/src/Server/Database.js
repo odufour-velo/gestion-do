@@ -86,3 +86,24 @@ function getDisciplines() {
     return ["Erreur de chargement"];
   }
 }
+
+/**
+ * Get the list for the Sheet "Categories"
+ * @return {Array} Name list of categories
+ */
+function getCategories() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("Categories");
+    
+    if (!sheet) return ["Elite", "Open 1", "Open 2", "Open 3", "Access 1", "Access 2", "Access 3", "Access 4"]; // Default values if sheet doesn't exist
+    
+    // Get all values from the first column
+    const values = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues();
+    
+    // Cleanup the array to return a simple list
+    return values.map(row => row[0]).filter(item => item && item !== "Nom"); 
+  } catch (e) {
+    return ["Erreur de chargement"];
+  }
+}
