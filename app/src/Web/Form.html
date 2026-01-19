@@ -18,13 +18,13 @@
             <div class="row">
                 <div class="field">
                     <label for="discipline">Discipline</label>
-                    <select id="discipline" onchange="renderEpreuves()">
+                    <select id="discipline" name="discipline" onchange="renderEpreuves()">
                         <option value="">-- Choisir --</option>
                     </select>
                 </div>
                 <div id="typeRoutePanel" class="field hidden">
                     <label for="type_route">Type d'épreuve (Route)</label>
-                    <select id="type_route" onchange="renderEpreuves()">
+                    <select id="type_route" name="type_route" onchange="renderEpreuves()">
                         <option value="course_ligne">Course en ligne / Étapes</option>
                         <option value="circuit">Circuit</option>
                     </select>
@@ -35,22 +35,22 @@
         <div class="panel">
             <h2>Informations Générales</h2>
             <div class="row">
-                <div class="field"><label>Organisateur</label><input type="text" id="organizer" required></div>
-                <div class="field"><label>Mail</label><input type="email" id="mail" required></div>
-                <div class="field"><label>Tel</label><input type="tel" id="tel"></div>
+                <div class="field"><label>Organisateur</label><input type="text" id="organizer" name="organizer" required></div>
+                <div class="field"><label>Mail</label><input type="email" id="mail" name="mail" required></div>
+                <div class="field"><label>Tel</label><input type="tel" id="tel" name="tel"></div>
             </div>
             <div class="row">
-                <div class="field"><label>Nom</label><input type="text" id="name" required></div>
-                <div class="field"><label>Date</label><input type="date" id="date" required></div>
-                <div class="field"><label>Lieu</label><input type="text" id="location" required></div>
+                <div class="field"><label>Nom</label><input type="text" id="name" name="name" required></div>
+                <div class="field"><label>Date</label><input type="date" id="date" name="date" required></div>
+                <div class="field"><label>Lieu</label><input type="text" id="location" name="location" required></div>
                 <div id="distCircuitGeneral" class="field hidden">
                     <label for="dist_circuit">Distance du circuit (km)</label>
-                    <input type="number" id="dist_circuit" step="0.001" oninput="calculerToutesDistances()">
+                    <input type="number" id="dist_circuit" name="distance_circuit" step="0.001" oninput="calculerToutesDistances()">
                 </div>
             </div>
             <div id="prixGeneraux" class="row hidden">
-                <div class="field"><label>Prix engagement (€)</label><input type="number" step="0.5" class="engagement"></div>
-                <div class="field"><label>Grille de prix</label><input type="text" class="grid"></div>
+                <div class="field"><label>Prix engagement (€)</label><input type="number" step="0.5" name="engagement"></div>
+                <div class="field"><label>Grille de prix</label><input type="text" name="grid"></div>
             </div>
         </div>
 
