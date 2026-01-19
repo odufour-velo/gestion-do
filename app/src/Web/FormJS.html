@@ -37,7 +37,6 @@ function generateUUID() {
 }
 
 const epreuvesList = document.getElementById('epreuvesList');
-const catOptions = document.getElementById('categoriesTemplate').innerHTML;
 
 function renderEpreuves() {
 
@@ -56,6 +55,9 @@ function renderEpreuves() {
 }
 
 function addEpreuveRow() {
+
+  const catOptions = document.getElementById('categoriesTemplate').innerHTML;
+  
     const discipline = document.getElementById('discipline').value;
     const typeRoute = document.getElementById('type_route').value;
     const div = document.createElement('div');
