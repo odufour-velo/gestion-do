@@ -1,0 +1,58 @@
+name: Deploy to TEST
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main, develop]
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install tools
+        run: |
+          npm install
+          npm install -g @google/clasp
+      
+      - name: Authenticate with Google
+        run: |
+          echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+      
+      - name: Push code to GAS
+        run: |
+          cd app
+          clasp push --force
+      
+      - name: Deploy to TEST endpoint
+        run: |
+          cd app
+          clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} \
+                       --description "Test Deploy - Commit: ${{ github.sha }} - Branch: ${{ github.ref_name }}"
+      
+      - name: Comment PR with deployment info
+        if: github.event_name == 'pull_request' || github.event.workflow_run.event == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** \`${{ secrets.TEST_DEPLOYMENT_ID }}\`\n\n**Commit:** \`${{ github.sha }}\``
+            })

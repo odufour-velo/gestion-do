@@ -12,6 +12,15 @@ Google Apps Script application for managing cycling event declarations. Built wi
 - [Deployment](#deployment)
 - [API Documentation](#api-documentation)
 - [Contributing](#contributing)
+- [CI/CD Pipeline (GitHub Actions)](#cicd-pipeline-github-actions)
+  - [Overview](#overview-1)
+  - [Environments](#environments)
+  - [Versioning Strategy](#versioning-strategy)
+  - [GitHub Actions Workflows](#github-actions-workflows)
+  - [GitHub Secrets Configuration](#github-secrets-configuration)
+  - [Workflow Execution Flow](#workflow-execution-flow)
+  - [Release Management](#release-management)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -398,7 +407,515 @@ git push origin feature/my-feature
 
 ---
 
+## CI/CD Pipeline (GitHub Actions)
+
+### Overview
+
+Automated testing and deployment pipeline using GitHub Actions ensures code quality and consistent deployments across development (test) and production environments with automatic release management.
+
+**Pipeline Strategy:**
+
+```
+Feature Branch / Pull Request
+    ↓
+[Stage 1] Run Unit Tests (Jest)
+    ↓
+[Stage 2] If PR → Hold for review
+    ↓ (if merged to main)
+[Stage 3] Deploy to TEST environment
+    ↓
+[Stage 4] Manual approval (optional)
+    ↓
+[Stage 5] Deploy to PRODUCTION + Create GitHub Release + Auto-Changelog
+```
+
+### Environments
+
+#### Development/Test Environment
+
+**Purpose:** First deployment target for all changes.  
+**Script ID:** `TEST_DEPLOYMENT_ID` (preview deployment, safe to redeploy)  
+**Access:** Internal team only  
+**Deployment:** Automatic on merge to `main` or `develop` branch
+
+**Characteristics:**
+- Uses test deployment endpoint
+- No production data
+- Can be redeployed without breaking user access
+- Good for smoke testing
+
+#### Production Environment
+
+**Purpose:** Live environment for end users.  
+**Script ID:** `PROD_DEPLOYMENT_ID` (full production deployment)  
+**Access:** Authorized domain users only  
+**Deployment:** Manual trigger via GitHub Actions (requires approval)
+
+**Characteristics:**
+- Uses production deployment
+- Connected to live Google Sheet
+- Versioned deployments for rollback capability
+- Creates GitHub Release automatically
+- Requires successful test deployment first
+
+### Versioning Strategy
+
+This project follows **Semantic Versioning** (`MAJOR.MINOR.PATCH`):
+
+- **MAJOR** (e.g., 1.0.0 → 2.0.0): Breaking changes, major features
+- **MINOR** (e.g., 1.0.0 → 1.1.0): New features, backward compatible
+- **PATCH** (e.g., 1.0.0 → 1.0.1): Bug fixes, improvements
+
+**Commit Message Convention (Conventional Commits):**
+
+Use prefixes in commit messages for automatic changelog generation:
+
+```
+feat: Add new discipline type           # MINOR version bump
+fix: Correct validation error           # PATCH version bump
+docs: Update README                     # No version bump
+chore: Update dependencies              # No version bump
+refactor: Simplify Database module      # PATCH version bump
+perf: Optimize bulk insert logic        # PATCH version bump
+```
+
+**Release Naming:**
+- Releases are tagged as `v1.2.3` in Git
+- GitHub Release notes include commit history
+- Deployment description includes version + commit hash
+
+### GitHub Actions Workflows
+
+#### Proposed Workflow Files
+
+Create these files in `.github/workflows/`:
+
+##### 1. **`.github/workflows/test.yml`** - Run Tests on Every Push/PR
+
+```yaml
+name: Tests
+
+on:
+  push:
+    branches: [main, develop, feature/**]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run Jest tests
+        run: npm test
+      
+      - name: Generate coverage report
+        run: npm run test:coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          verbose: true
+      
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Tests passed for commit ${context.payload.pull_request.head.sha.substring(0, 7)}`
+            })
+```
+
+##### 2. **`.github/workflows/deploy-test.yml`** - Deploy to Test Environment
+
+```yaml
+name: Deploy to TEST
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main, develop]
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # For better commit history
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install tools
+        run: |
+          npm install
+          npm install -g @google/clasp
+      
+      - name: Authenticate with Google
+        run: |
+          echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+      
+      - name: Push code to GAS
+        run: |
+          cd app
+          clasp push --force
+      
+      - name: Deploy to TEST endpoint
+        run: |
+          cd app
+          clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} \
+                       --description "Test Deploy - Commit: ${{ github.sha }} - Branch: ${{ github.ref_name }}"
+      
+      - name: Comment PR with deployment info
+        if: github.event_name == 'pull_request' || github.event.workflow_run.event == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** \`${{ secrets.TEST_DEPLOYMENT_ID }}\`\n\n**Commit:** \`${{ github.sha }}\``
+            })
+```
+
+##### 3. **`.github/workflows/deploy-prod.yml`** - Deploy to Production + Create Release
+
+```yaml
+name: Deploy to PRODUCTION
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semantic version (format: major.minor.patch, e.g. 1.2.3)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (optional, auto-generated from commits if empty)'
+        required: false
+        type: string
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production  # Requires approval in GitHub
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
+    
+    outputs:
+      release_url: ${{ steps.create-release.outputs.html_url }}
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Full history for changelog
+      
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format. Use semantic versioning (e.g., 1.2.3)"
+            exit 1
+          fi
+      
+      - name: Check if tag already exists
+        run: |
+          if git rev-parse "v${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "❌ Tag v${{ github.event.inputs.version }} already exists"
+            exit 1
+          fi
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install tools
+        run: |
+          npm install
+          npm install -g @google/clasp
+      
+      - name: Authenticate with Google
+        run: |
+          echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+      
+      - name: Push code to GAS
+        run: |
+          cd app
+          clasp push --force
+      
+      - name: Deploy to PRODUCTION
+        id: deploy
+        run: |
+          cd app
+          clasp deploy --description "Production Release v${{ github.event.inputs.version }} - Commit: ${{ github.sha }}"
+          echo "deployment_success=true" >> $GITHUB_OUTPUT
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LAST_TAG" ]; then
+            COMMIT_LOG=$(git log --oneline --format="- %h: %s" | head -20)
+          else
+            COMMIT_LOG=$(git log ${LAST_TAG}..HEAD --oneline --format="- %h: %s")
+          fi
+          
+          # Build changelog content
+          BODY="## Release v${{ github.event.inputs.version }}"
+          BODY+=$'\n\n**Production Deployment**'
+          BODY+=$'\n'
+          BODY+=$'\n### 📋 Changes'
+          BODY+=$'\n'
+          BODY+=$'\n'"${COMMIT_LOG}"
+          BODY+=$'\n\n### 🔗 Links'
+          BODY+=$'\n- [Production URL](https://script.google.com/macros/d/${{ secrets.PROD_SCRIPT_ID }}/usercache)'
+          BODY+=$'\n- [Commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})'
+          BODY+=$'\n- [Deployer](${{ github.server_url }}/${{ github.actor }})'
+          BODY+=$'\n\n### ℹ️ Deployment Info'
+          BODY+=$'\n- **Deployed by:** ${{ github.actor }}'
+          BODY+=$'\n- **Timestamp:** $(date -u +'%Y-%m-%dT%H:%M:%SZ')'
+          BODY+=$'\n- **Commit:** ${{ github.sha }}'
+          
+          # Save to file for next step
+          echo "$BODY" > /tmp/release_body.txt
+          cat /tmp/release_body.txt
+      
+      - name: Create Git tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ github.event.inputs.version }}" -m "Production Release v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
+      
+      - name: Create GitHub Release
+        id: create-release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ github.event.inputs.version }}
+          name: Release v${{ github.event.inputs.version }}
+          bodyFile: /tmp/release_body.txt
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Notify deployment success
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `✅ **Production Release v${{ github.event.inputs.version }}** deployed successfully!\n\n🔗 [View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ github.event.inputs.version }})\n\n📍 [Production URL](https://script.google.com/macros/d/${{ secrets.PROD_SCRIPT_ID }}/usercache)`
+            })
+      
+      - name: Notify deployment failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `❌ **Production Release v${{ github.event.inputs.version }}** failed!\n\n[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            })
+```
+
+### GitHub Secrets Configuration
+
+Configure these secrets in GitHub repository settings (Settings → Secrets and Variables → Actions):
+
+| Secret Name | Value | Notes |
+|---|---|---|
+| `CLASP_TOKEN` | Content of `~/.clasprc.json` | Run `clasp login` locally, copy token |
+| `TEST_SCRIPT_ID` | Script ID from GAS Editor | For TEST deployment preview URL |
+| `TEST_DEPLOYMENT_ID` | Deployment ID from GAS | For TEST preview endpoint |
+| `PROD_SCRIPT_ID` | Script ID from GAS (prod) | For PRODUCTION URL in release notes |
+| `PROD_DEPLOYMENT_ID` | Deployment ID from GAS (prod) | For PRODUCTION versioned deploy |
+
+**How to Get Secrets:**
+
+1. **CLASP_TOKEN:**
+   ```bash
+   clasp login
+   cat ~/.clasprc.json
+   # Copy entire JSON content as secret
+   ```
+
+2. **Script IDs & Deployment IDs:**
+   - Go to Google Apps Script Editor
+   - Project Settings → View Script ID (for PROD/TEST_SCRIPT_ID)
+   - Deploy → Manage Deployments → Copy Deployment ID (for PROD/TEST_DEPLOYMENT_ID)
+
+### Production Environment Protection
+
+Lock production deployments with GitHub Environment Rules:
+
+**Settings → Environments → production:**
+
+1. ✅ **Required reviewers** - At least 1 trusted approver
+2. ✅ **Deployment branches** - `main` only
+3. ✅ **Protection rules** - Require status checks to pass
+
+### Workflow Execution Flow
+
+#### Scenario 1: Feature Branch PR
+
+```
+1. Push to feature branch
+   ↓
+2. GitHub Actions runs Jest tests
+   ↓
+3. If tests PASS → "Deploy to TEST" runs automatically
+   ↓
+4. Comment added to PR with test URL + deployment info
+   ↓
+5. Code review + approval
+   ↓
+6. Merge to main
+```
+
+#### Scenario 2: Merge to Main
+
+```
+1. PR merged to main
+   ↓
+2. Tests run automatically
+   ↓
+3. If tests pass → Deploy to TEST environment
+   ↓
+4. Ready for manual production approval
+```
+
+#### Scenario 3: Production Release
+
+```
+1. Manual trigger: Actions → "Deploy to PRODUCTION" → Run Workflow
+   ↓
+2. Enter version (e.g., "1.2.3") + optional release notes
+   ↓
+3. GitHub checks version format validity
+   ↓
+4. Requires production environment approval (1+ reviewer)
+   ↓
+5. Deploy to production GAS
+   ↓
+6. Git tag created: v1.2.3
+   ↓
+7. GitHub Release created with:
+    - Auto-generated changelog (commits since last release)
+    - Links to production URL
+    - Deployer info & timestamp
+   ↓
+8. Commit comment posted with release link
+```
+
+### Release Management
+
+#### Manual Production Deployments
+
+**When to Deploy to Production:**
+
+- All tests passing
+- Code reviewed and approved
+- Changes tested in TEST environment
+- Release notes prepared (optional)
+
+**How to Trigger:**
+
+1. Go to your GitHub repo
+2. Click **Actions** tab
+3. Select **Deploy to PRODUCTION** workflow
+4. Click **Run workflow**
+5. Enter version (e.g., `1.2.3`)
+6. Optionally add custom release notes
+7. Click **Run workflow**
+8. Wait for environment approval (if configured)
+9. Approve in the workflow run page if prompted
+
+**Result:**
+- ✅ Code deployed to Google Apps Script (production)
+- ✅ Git tag `v1.2.3` created
+- ✅ GitHub Release created with changelog
+- ✅ Deployment tracked in release history
+
+#### Viewing Releases
+
+1. Go to repo → **Releases** tab
+2. View all production deployments with changelogs
+3. Click release to see deployment details & commits
+4. Download release assets if needed
+
+#### Rollback Strategy
+
+If production has issues:
+
+1. **Quick Rollback (via GAS Editor):**
+   - Go to Google Apps Script Editor
+   - Deployments → Select previous working deployment
+   - Redeploy manually
+
+2. **Versioned Rollback (via GitHub Actions):**
+   - Revert problematic commit: `git revert <commit>`
+   - Create new release version (e.g., `1.2.4`)
+   - Run production deployment workflow
+   - New deployment will be created, old version stays in history
+
+### Secrets & Security Best Practices
+
+1. **CLASP_TOKEN:**
+   - Never share or commit to repo
+   - Rotate periodically (logout from clasp, re-authenticate)
+   - Use separate credentials per environment if possible
+
+2. **Deployment IDs:**
+   - Can be rotated by creating new deployments in GAS Editor
+   - Update secrets after rotation
+
+3. **Access Control:**
+   - Use GitHub environment approvals for production
+   - Limit production signers to core team members
+
+---
+
 ## Troubleshooting
+
+
 
 ### Port Already in Use (3000)
 
