@@ -4,6 +4,11 @@ on:
   workflow_run:
     workflows: [Tests]
     types: [completed]
+    branches:
+      - main
+      - develop
+      - feature/**
+      - bugfix/**
 
 permissions:
   issues: write
