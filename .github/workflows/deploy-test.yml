@@ -13,14 +13,7 @@ jobs:
   deploy-test:
     runs-on: ubuntu-latest
     
-    steps:
-      - name: Download artifact from Tests workflow
-        uses: actions/download-artifact@v3
-        with:
-          name: test-results
-          path: .
-        continue-on-error: true
-      
+    steps:      
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
