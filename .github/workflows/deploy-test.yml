@@ -11,6 +11,9 @@ on:
 jobs:
   deploy-test:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'
     
     steps:
@@ -50,9 +53,26 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** \`${{ secrets.TEST_DEPLOYMENT_ID }}\`\n\n**Commit:** \`${{ github.sha }}\``
-            })
+            let prNumber;
+            if (context.issue) {
+              prNumber = context.issue.number;
+            } else {
+              // For workflow_run, find the PR with the head_sha
+              const prs = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open'
+              });
+              const pr = prs.data.find(p => p.head.sha === context.payload.workflow_run.head_sha);
+              if (pr) {
+                prNumber = pr.number;
+              }
+            }
+            if (prNumber) {
+              await github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** \`${{ secrets.TEST_DEPLOYMENT_ID }}\`\n\n**Commit:** \`${{ github.sha }}\``
+              });
+            }
