@@ -111,14 +111,46 @@ function injectMockGAS(html) {
       window.google.script.run = {
         processForm: function(data) {
           console.log('Client-side mock: processForm called');
+          fetch('/api/processForm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          })
+            .then(r => r.json())
+            .then(result => {
+              if (result.success && this._successCallback) {
+                this._successCallback();
+              } else if (!result.success && this._failureCallback) {
+                this._failureCallback({ message: result.errors.join('; ') });
+              }
+            })
+            .catch(err => {
+              if (this._failureCallback) this._failureCallback(err);
+            });
           return this;
         },
         getDisciplines: function() {
           console.log('Client-side mock: getDisciplines called');
+          fetch('/api/disciplines')
+            .then(r => r.json())
+            .then(list => {
+              if (this._successCallback) this._successCallback(list);
+            })
+            .catch(err => {
+              if (this._failureCallback) this._failureCallback(err);
+            });
           return this;
         },
         getCategories: function() {
           console.log('Client-side mock: getCategories called');
+          fetch('/api/categories')
+            .then(r => r.json())
+            .then(list => {
+              if (this._successCallback) this._successCallback(list);
+            })
+            .catch(err => {
+              if (this._failureCallback) this._failureCallback(err);
+            });
           return this;
         },
         withSuccessHandler: function(callback) {
@@ -136,19 +168,7 @@ function injectMockGAS(html) {
       // Override fetch to intercept API calls
       const originalFetch = window.fetch;
       window.fetch = function(url, options) {
-        if (url === '/api/processForm') {
-          const data = JSON.parse(options.body);
-          return fetch('/api/processForm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-            .then(r => r.json())
-            .then(result => {
-              if (result.success && window.google.script.run._successCallback) {
-                window.google.script.run._successCallback();
-              } else if (!result.success && window.google.script.run._failureCallback) {
-                window.google.script.run._failureHandler({ message: result.errors.join('; ') });
-              }
-              return new Response(JSON.stringify(result));
-            });
-        }
+        // No longer needed, mocks handle it
         return originalFetch.apply(this, arguments);
       };
     </script>
