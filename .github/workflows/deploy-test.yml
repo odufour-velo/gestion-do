@@ -1,10 +1,6 @@
 name: Deploy to TEST
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   workflow_run:
     workflows: [Tests]
     types: [completed]
@@ -17,7 +13,7 @@ permissions:
 jobs:
   deploy-test:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'
+    if: github.event.workflow_run.conclusion == 'success'
     
     steps:
       - uses: actions/checkout@v3
