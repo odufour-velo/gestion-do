@@ -71,6 +71,8 @@ jobs:
                 issue_number: pr.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** \`${{ secrets.TEST_DEPLOYMENT_ID }}\`\n\n**Commit:** \`${{ github.event.workflow_run.head_sha }}\``
+                body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** \
+`${{ secrets.TEST_DEPLOYMENT_ID }}`\n\n**Commit:** \
+`${{ github.event.workflow_run.head_sha }}``
               });
             }
