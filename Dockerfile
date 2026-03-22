@@ -13,8 +13,10 @@ CMD ["npm", "test"]
 # --- Dev Stage (for local testing) ---
 FROM base as dev
 COPY . .
+COPY start.sh .
+RUN chmod +x start.sh
 EXPOSE 3000
-CMD ["npm", "run", "server"]
+CMD ["bash", "start.sh"]
 
 # --- Release/Clasp Stage ---
 FROM base as release

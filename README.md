@@ -90,12 +90,7 @@ Google Apps Script application for managing cycling event declarations. Built wi
    cd DOcourse
    ```
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Build Docker images (optional):**
+2. **Build Docker images (optional):**
    ```bash
    make build        # Full Docker images
    make build-dev    # Dev server image only
@@ -112,14 +107,8 @@ Google Apps Script application for managing cycling event declarations. Built wi
 Run Jest tests to validate core logic before UI testing:
 
 ```bash
-# Run tests locally (requires Node.js)
+# Run tests locally (requires Docker)
 make test-unit
-
-# Or with Docker (no local Node needed)
-make test-docker
-
-# Watch mode for continuous testing
-make test-unit-watch
 
 # Coverage report
 make test-unit-coverage
@@ -131,12 +120,7 @@ Launch a mock GAS environment with Express server:
 
 ```bash
 # Start server on http://localhost:3000
-make server-dev-docker
-```
-
-Or without Docker:
-```bash
-make server
+make server-dev
 ```
 
 - Open http://localhost:3000 in your browser
@@ -225,7 +209,7 @@ The Express server (`server.js`) provides:
 make test-unit
 
 # 3. Test UI locally
-make server-dev-docker
+make server-dev
 
 # 4. Push to GAS
 make push
