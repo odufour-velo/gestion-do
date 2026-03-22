@@ -1,6 +1,7 @@
 name: Deploy to TEST
 
 on:
+  pull_request:
   workflow_run:
     workflows: ["Tests"]
     types: [completed]
