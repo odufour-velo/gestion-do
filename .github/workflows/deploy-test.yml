@@ -35,15 +35,21 @@ jobs:
           echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
           chmod 600 ~/.clasprc.json
       
-      - name: Push code to GAS
+      - name: Configure Script ID (Environment Switching)
         run: |
-          cd app
-          clasp push --force
+          # On remplace l'ID dans le fichier .clasp.json par celui de TEST
+          # Si c'était la branche main, on mettrait SCRIPT_ID_PROD
+          sed -i 's/"scriptId":"[^"]*"/"scriptId":"${{ secrets.SCRIPT_ID_TEST }}"/' .clasp.json
+
+      - name: Push to Google Apps Script
+        run: |
+          # On lance le push. Clasp lira le .clasp.json modifié
+          npx @google/clasp push --force
       
       - name: Deploy to TEST endpoint
         run: |
           cd app
-          clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} \
+          npx @google/clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} \
                        --description "Test Deploy - Commit: ${{ github.event.workflow_run.head_sha }} - Branch: ${{ github.event.workflow_run.head_branch }}"
       
       - name: Comment PR with deployment info
