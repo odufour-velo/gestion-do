@@ -36,7 +36,9 @@ jobs:
           
           # --- ÉTAPE A : AUTHENTIFICATION ---
           # On écrit le TOKEN de connexion dans le HOME du runner
-          echo "$CLASP_TOKEN_JSON" > ~/.clasprc.json
+          cat <<EOF > ~/.clasprc.json
+          $CLASP_TOKEN_JSON
+          EOF
           
           # --- ÉTAPE B : CONFIGURATION PROJET ---
           # On crée le fichier projet .clasp.json (AVEC LE POINT)
