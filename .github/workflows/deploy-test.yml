@@ -43,7 +43,12 @@ jobs:
           cat <<EOF > .clasp.json
           {
             "scriptId": "${{ secrets.TEST_SCRIPT_ID }}",
-            "rootDir": ".",
+            "rootDir":"./src",
+            "scriptExtensions":[".js",".gs"],
+            "htmlExtensions":[".html"],
+            "jsonExtensions":[".json"],
+            "filePushOrder":["src/Server/Utils.js","src/App.js"],
+            "skipSubdirectories":false,
             "projectId": "detailsorganisation"
           }
           EOF
