@@ -33,19 +33,27 @@ jobs:
           CLASP_TOKEN_JSON: ${{ secrets.CLASP_TOKEN }}
         run: |
           cd app
-
-          # On crée ou on écrase le fichier .clasp.json pour être sûr de sa présence
-          cat <<EOF > .clasprc.json
+          
+          # --- ÉTAPE A : AUTHENTIFICATION ---
+          # On écrit le TOKEN de connexion dans le HOME du runner
+          echo "$CLASP_TOKEN_JSON" > ~/.clasprc.json
+          
+          # --- ÉTAPE B : CONFIGURATION PROJET ---
+          # On crée le fichier projet .clasp.json (AVEC LE POINT)
+          cat <<EOF > .clasp.json
           {
-            "scriptId": "${{ secrets.SCRIPT_ID_TEST }}",
+            "scriptId": "${{ secrets.TEST_SCRIPT_ID }}",
             "rootDir": ".",
             "projectId": "detailsorganisation"
           }
           EOF
-                    
-          # 3. Forcer clasp à utiliser le fichier local
-          # On déplace temporairement le fichier vers le HOME du runner juste avant l'exécution
-          cp .clasprc.json ~/.clasprc.json
+
+          # --- ÉTAPE C : EXECUTION ---
+          # On vérifie que le scriptId n'est pas vide avant de continuer
+          if [ -z "${{ secrets.TEST_SCRIPT_ID }}" ]; then
+            echo "Erreur : TEST_SCRIPT_ID est vide !"
+            exit 1
+          fi
           
           # 4. Exécuter les commandes
           clasp push --force
