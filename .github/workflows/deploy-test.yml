@@ -34,7 +34,6 @@ jobs:
         run: |
           cd app
 
-          cd app
           # On crée ou on écrase le fichier .clasp.json pour être sûr de sa présence
           cat <<EOF > .clasp.json
           {
