@@ -35,7 +35,7 @@ jobs:
           cd app
 
           # On crée ou on écrase le fichier .clasp.json pour être sûr de sa présence
-          cat <<EOF > .clasp.json
+          cat <<EOF > .clasprc.json
           {
             "scriptId": "${{ secrets.SCRIPT_ID_TEST }}",
             "rootDir": ".",
