@@ -33,13 +33,17 @@ jobs:
           CLASP_TOKEN_JSON: ${{ secrets.CLASP_TOKEN }}
         run: |
           cd app
-          
-          # 1. Créer le fichier d'auth DIRECTEMENT dans le dossier 'app'
-          echo "$CLASP_TOKEN_JSON" > .clasprc.json
-          
-          # 2. Injecter le script ID de TEST dans le .clasp.json
-          sed -i 's/"scriptId":"[^"]*"/"scriptId":"${{ secrets.SCRIPT_ID_TEST }}"/' .clasp.json
-          
+
+          cd app
+          # On crée ou on écrase le fichier .clasp.json pour être sûr de sa présence
+          cat <<EOF > .clasp.json
+          {
+            "scriptId": "${{ secrets.SCRIPT_ID_TEST }}",
+            "rootDir": ".",
+            "projectId": "detailsorganisation"
+          }
+          EOF
+                    
           # 3. Forcer clasp à utiliser le fichier local
           # On déplace temporairement le fichier vers le HOME du runner juste avant l'exécution
           cp .clasprc.json ~/.clasprc.json
