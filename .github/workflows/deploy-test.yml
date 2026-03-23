@@ -32,6 +32,7 @@ jobs:
       
       - name: Authenticate with Google
         run: |
+          cd app
           echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
           chmod 600 ~/.clasprc.json
       
@@ -39,11 +40,13 @@ jobs:
         run: |
           # On remplace l'ID dans le fichier .clasp.json par celui de TEST
           # Si c'était la branche main, on mettrait SCRIPT_ID_PROD
+          cd app
           sed -i 's/"scriptId":"[^"]*"/"scriptId":"${{ secrets.SCRIPT_ID_TEST }}"/' .clasp.json
 
       - name: Push to Google Apps Script
         run: |
           # On lance le push. Clasp lira le .clasp.json modifié
+          cd app
           npx @google/clasp push --force
       
       - name: Deploy to TEST endpoint
