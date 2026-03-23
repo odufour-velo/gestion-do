@@ -16,44 +16,37 @@ jobs:
     steps:      
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          # Correction : si vous êtes sur un trigger "push", utilisez github.sha
+          ref: ${{ github.sha }}
           fetch-depth: 0
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
       
-      - name: Install tools
-        run: |
-          npm install
-          npm install -g @google/clasp
+      - name: Install clasp
+        run: npm install -g @google/clasp
       
-      - name: Authenticate with Google
+      - name: Deploy to GAS
+        env:
+          CLASP_TOKEN_JSON: ${{ secrets.CLASP_TOKEN }}
         run: |
           cd app
-          echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
-          chmod 600 ~/.clasprc.json
-      
-      - name: Configure Script ID (Environment Switching)
-        run: |
-          # On remplace l'ID dans le fichier .clasp.json par celui de TEST
-          # Si c'était la branche main, on mettrait SCRIPT_ID_PROD
-          cd app
+          
+          # 1. Créer le fichier d'auth DIRECTEMENT dans le dossier 'app'
+          echo "$CLASP_TOKEN_JSON" > .clasprc.json
+          
+          # 2. Injecter le script ID de TEST dans le .clasp.json
           sed -i 's/"scriptId":"[^"]*"/"scriptId":"${{ secrets.SCRIPT_ID_TEST }}"/' .clasp.json
-
-      - name: Push to Google Apps Script
-        run: |
-          # On lance le push. Clasp lira le .clasp.json modifié
-          cd app
-          npx @google/clasp push --force
-      
-      - name: Deploy to TEST endpoint
-        run: |
-          cd app
-          npx @google/clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} \
-                       --description "Test Deploy - Commit: ${{ github.event.workflow_run.head_sha }} - Branch: ${{ github.event.workflow_run.head_branch }}"
+          
+          # 3. Forcer clasp à utiliser le fichier local
+          # On déplace temporairement le fichier vers le HOME du runner juste avant l'exécution
+          cp .clasprc.json ~/.clasprc.json
+          
+          # 4. Exécuter les commandes
+          clasp push --force
+          clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} --description "Deploy ${{ github.sha }}"
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6
