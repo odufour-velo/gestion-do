@@ -37,10 +37,10 @@ jobs:
           cd app
           
           # --- ÉTAPE A : AUTHENTIFICATION ---
-          # On écrit le TOKEN de connexion dans le HOME du runner
-          cat <<EOF > ./.clasprc.json
-          $CLASP_TOKEN_JSON
-          EOF
+          echo "$CLASP_TOKEN_JSON" | jq '{
+            token: .tokens.default,
+            isLocalCreds: true
+          }' > ./.clasprc.json
           cat ./.clasprc.json
           
           # --- ÉTAPE B : CONFIGURATION PROJET ---
