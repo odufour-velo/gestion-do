@@ -33,12 +33,16 @@ jobs:
           CLASP_TOKEN_JSON: ${{ secrets.CLASP_TOKEN }}
           SCRIPT_ID: ${{ secrets.TEST_SCRIPT_ID }}
           DEPLOYMENT_ID: ${{ secrets.TEST_DEPLOYMENT_ID }}
-        run: |
-          cd app
-          
+        run: |          
           # --- ÉTAPE A : AUTHENTIFICATION ---
           echo "$CLASP_TOKEN_JSON" | jq '{
-            "token": .tokens.default,
+            "token": {
+              "access_token": .tokens.default.access_token,
+              "refresh_token": .tokens.default.refresh_token,
+              "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/logging.read https://www.googleapis.com/auth/cloud-platform.read-only https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/script.deployments https://www.googleapis.com/auth/drive.projects.readonly",
+              "token_type": "Bearer",
+              "expiry_date": .tokens.default.expiry_date
+            },
             "oauth2ClientSettings": {
               "clientId": .tokens.default.client_id,
               "clientSecret": .tokens.default.client_secret,
@@ -46,6 +50,8 @@ jobs:
             },
             "isLocalCreds": true
           }' > ~/.clasprc.json
+          
+          cd app
           
           # --- ÉTAPE B : CONFIGURATION PROJET ---
           # On crée le fichier projet .clasp.json (AVEC LE POINT)
