@@ -63,8 +63,8 @@ jobs:
           fi
           
           # 4. Exécuter les commandes
-          clasp push --force
-          clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} --description "Deploy ${{ github.sha }}"
+          clasp push --force --auth ./.clasprc.json
+          clasp deploy --deploymentId ${{ secrets.TEST_DEPLOYMENT_ID }} --description "Deploy ${{ github.sha }}" --auth ./.clasprc.json
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6
