@@ -37,15 +37,15 @@ jobs:
           # --- ÉTAPE A : AUTHENTIFICATION ---
           echo "$CLASP_TOKEN_JSON" | jq '{
             "token": {
-              "access_token": .tokens.default.access_token,
-              "refresh_token": .tokens.default.refresh_token,
-              "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/logging.read https://www.googleapis.com/auth/cloud-platform.read-only https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/script.deployments https://www.googleapis.com/auth/drive.projects.readonly",
+              "access_token": .token.access_token,
+              "refresh_token": .token.refresh_token,
+              "scope": "https://www.googleapis.com/auth/script.deployments https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/drive.metadata.readonly",
               "token_type": "Bearer",
-              "expiry_date": .tokens.default.expiry_date
+              "expiry_date": .token.expiry_date
             },
             "oauth2ClientSettings": {
-              "clientId": .tokens.default.client_id,
-              "clientSecret": .tokens.default.client_secret,
+              "clientId": .oauth2ClientSettings.client_id,
+              "clientSecret": .oauth2ClientSettings.client_secret,
               "redirectUri": "http://localhost"
             },
             "isLocalCreds": true
