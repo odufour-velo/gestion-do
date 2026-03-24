@@ -38,14 +38,14 @@ jobs:
           
           # --- ÉTAPE A : AUTHENTIFICATION ---
           # On écrit le TOKEN de connexion dans le HOME du runner
-          cat <<'EOF' > ./.clasprc.json
+          cat <<EOF > ./.clasprc.json
           $CLASP_TOKEN_JSON
           EOF
           cat ./.clasprc.json
           
           # --- ÉTAPE B : CONFIGURATION PROJET ---
           # On crée le fichier projet .clasp.json (AVEC LE POINT)
-          cat <<'EOF' > ./.clasp.json
+          cat <<EOF > ./.clasp.json
           {
             "scriptId": "$SCRIPT_ID",
             "rootDir":"./src",
@@ -67,8 +67,8 @@ jobs:
           fi
           
           # 4. Exécuter les commandes
-          clasp push --force
-          clasp deploy --deploymentId $DEPLOYMENT_ID --description "Deploy ${{ github.sha }}"
+          npx @google/clasp push --force
+          npx @google/clasp deploy --deploymentId $DEPLOYMENT_ID --description "Deploy ${{ github.sha }}"
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6
