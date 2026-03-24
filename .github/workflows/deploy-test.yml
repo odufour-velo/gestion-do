@@ -36,7 +36,7 @@ jobs:
         run: |          
           # --- ÉTAPE A : AUTHENTIFICATION ---
           printf '%s' "$CLASP_TOKEN_JSON" > ~/.clasprc.json
-          cat ~/.clasprc.json
+          cp ~/.clasprc.json ./.clasprc.json
           
           cd app
           
@@ -63,8 +63,8 @@ jobs:
           fi
           
           # 4. Exécuter les commandes
-          npx @google/clasp push --force
-          npx @google/clasp deploy --deploymentId $DEPLOYMENT_ID --description "Deploy ${{ github.sha }}"
+          npx @google/clasp push --force --auth ./.clasprc.json
+          npx @google/clasp deploy --deploymentId $DEPLOYMENT_ID --description "Deploy ${{ github.sha }}" --auth ./.clasprc.json
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6
