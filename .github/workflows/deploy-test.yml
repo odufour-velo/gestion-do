@@ -35,8 +35,9 @@ jobs:
           DEPLOYMENT_ID: ${{ secrets.TEST_DEPLOYMENT_ID }}
         run: |          
           # --- ÉTAPE A : AUTHENTIFICATION ---
-          echo "$CLASP_TOKEN_JSON" > ~/.clasprc.json
+          printf '%s' "$CLASP_TOKEN_JSON" > ~/.clasprc.json
           cat ~/.clasprc.json
+          
           cd app
           
           # --- ÉTAPE B : CONFIGURATION PROJET ---
