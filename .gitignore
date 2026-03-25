@@ -1,4 +1,3 @@
 node_modules/
-.clasprc.json
-client_secret_oauth.json
-creds.json
+creds/
+.env
