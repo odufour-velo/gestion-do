@@ -5,13 +5,13 @@ FROM node:18-slim
 RUN npm install -g @google/clasp
 
 # Création du répertoire de travail
-WORKDIR /app
+WORKDIR /
 
 # On copie le contenu de votre repo dans le conteneur
-COPY ./app/src ./src
+COPY ./app/src ./app/src
 
 # On rend le script de déploiement exécutable (voir étape suivante)
-COPY .docker/deploy-test/deploy-local.sh .
-RUN chmod +x ./deploy-local.sh
+COPY .docker/test/deploy.sh .
+RUN chmod +x /deploy.sh
 
-ENTRYPOINT ["/bin/bash", "./deploy-local.sh"]
+ENTRYPOINT ["/bin/bash", "/deploy.sh"]

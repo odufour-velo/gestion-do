@@ -103,7 +103,8 @@ Google Apps Script application for managing cycling event declarations. Built wi
 
 4. **Simulate Continuous Integration (GitHub) pipeline**
   
-  Create a file *.docker/deploy-test/.env* for environment variables (*CLASP_TOKEN_JSON*, *TEST_SCRIPT_ID*, *TEST_DEPLOYMENT_ID*)
+  Create a file *.docker/test/.env* for environment variables (*CLASP_TOKEN_JSON*, *TEST_SCRIPT_ID*, *TEST_DEPLOYMENT_ID*, *DEPLOYMENT_SHA*)
+  - *DEPLOYMENT_SHA* is a random string
   - *TEST_SCRIPT_ID*, *TEST_DEPLOYMENT_ID* can be found in Google App Script settings
   - *CLASP_TOKEN_JSON* is the content of the file *.clasprc.json* created with `make update-credentials` command
 

@@ -31,40 +31,10 @@ jobs:
       - name: Deploy to GAS
         env:
           CLASP_TOKEN_JSON: ${{ secrets.CLASP_TOKEN }}
-          SCRIPT_ID: ${{ secrets.TEST_SCRIPT_ID }}
-          DEPLOYMENT_ID: ${{ secrets.TEST_DEPLOYMENT_ID }}
-        run: |          
-          # --- ÉTAPE A : AUTHENTIFICATION ---
-          printf '%s' "$CLASP_TOKEN_JSON" > ~/.clasprc.json
-          cp ~/.clasprc.json ./.clasprc.json
-          
-          cd app
-          
-          # --- ÉTAPE B : CONFIGURATION PROJET ---
-          # On crée le fichier projet .clasp.json (AVEC LE POINT)
-          cat <<EOF > ./.clasp.json
-          {
-            "scriptId": "$SCRIPT_ID",
-            "rootDir":"./src",
-            "scriptExtensions":[".js",".gs"],
-            "htmlExtensions":[".html"],
-            "jsonExtensions":[".json"],
-            "filePushOrder":["src/Server/Utils.js","src/App.js"],
-            "skipSubdirectories":false,
-            "projectId": "detailsorganisation"
-          }
-          EOF
-
-          # --- ÉTAPE C : EXECUTION ---
-          # On vérifie que le scriptId n'est pas vide avant de continuer
-          if [ -z "$SCRIPT_ID" ]; then
-            echo "Erreur : TEST_SCRIPT_ID est vide !"
-            exit 1
-          fi
-          
-          # 4. Exécuter les commandes
-          npx @google/clasp push --force --auth ./.clasprc.json
-          npx @google/clasp deploy --deploymentId $DEPLOYMENT_ID --description "Deploy ${{ github.sha }}" --auth ./.clasprc.json
+          TEST_SCRIPT_ID: ${{ secrets.TEST_SCRIPT_ID }}
+          TEST_DEPLOYMENT_ID: ${{ secrets.TEST_DEPLOYMENT_ID }}
+          DEPLOYMENT_SHA: ${{ github.sha }}
+        run: .docker/test/deploy.sh
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6

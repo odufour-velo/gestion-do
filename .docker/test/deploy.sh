@@ -2,9 +2,11 @@
 
 set -e # Arrête le script à la moindre erreur
 
+cd app
+
 # Simulation de l'étape A : Authentification
 # On utilise la variable d'environnement passée au conteneur
-cat <<EOF > /root/.clasprc.json
+cat <<EOF > ~/.clasprc.json
 $CLASP_TOKEN_JSON
 EOF
 
@@ -23,4 +25,4 @@ cat <<EOF > .clasp.json
 EOF
 
 clasp push --force
-clasp deploy --deploymentId "$TEST_DEPLOYMENT_ID" --description "Local manual deploy"
+clasp deploy --deploymentId "$TEST_DEPLOYMENT_ID" --description "Deploy $DEPLOYMENT_SHA"
