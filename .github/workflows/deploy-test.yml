@@ -42,6 +42,9 @@ jobs:
         with:
           script: |
             // For push, find the PR with the head_sha
+            const testScriptId = '${{ secrets.TEST_SCRIPT_ID }}';
+            const testDeploymentId = '${{ secrets.TEST_DEPLOYMENT_ID }}';
+            const commitSha = '${{ github.sha }}';
             const prs = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -53,6 +56,6 @@ jobs:
                 issue_number: pr.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${{ secrets.TEST_SCRIPT_ID }}/usercache\n\n**Deployment ID:** `${{ secrets.TEST_DEPLOYMENT_ID }}`\n\n**Commit:** `${{ github.sha }}``
+                body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${testScriptId}/usercache\n\n**Deployment ID:** ${JSON.stringify(testDeploymentId)}\n\n**Commit:** ${JSON.stringify(commitSha)}`
               });
             }
