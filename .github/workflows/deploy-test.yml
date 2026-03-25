@@ -1,0 +1,61 @@
+name: Deploy to TEST
+
+on:
+  push:
+    branches: [feature/**, bugfix/**]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+    
+    steps:      
+      - uses: actions/checkout@v3
+        with:
+          # Correction : si vous êtes sur un trigger "push", utilisez github.sha
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install clasp
+        run: npm install -g @google/clasp
+      
+      - name: Deploy to GAS
+        env:
+          CLASP_TOKEN_JSON: "${{ secrets.CLASP_TOKEN }}"
+          TEST_SCRIPT_ID: "${{ secrets.TEST_SCRIPT_ID }}"
+          TEST_DEPLOYMENT_ID: "${{ secrets.TEST_DEPLOYMENT_ID }}"
+          DEPLOYMENT_SHA: "${{ github.sha }}"
+        run: |
+          bash .docker/test/deploy.sh
+      
+      - name: Comment PR with deployment info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // For push, find the PR with the head_sha
+            const testScriptId = '${{ secrets.TEST_SCRIPT_ID }}';
+            const testDeploymentId = '${{ secrets.TEST_DEPLOYMENT_ID }}';
+            const commitSha = '${{ github.sha }}';
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+            const pr = prs.data.find(p => p.head.sha === context.sha);
+            if (pr) {
+              await github.rest.issues.createComment({
+                issue_number: pr.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `🚀 Deployed to TEST environment\n\n**Test URL:** https://script.google.com/macros/d/${testScriptId}/usercache\n\n**Deployment ID:** ${JSON.stringify(testDeploymentId)}\n\n**Commit:** ${JSON.stringify(commitSha)}`
+              });
+            }

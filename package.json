@@ -1,8 +1,16 @@
 {
   "name": "clasp-docker-project",
   "version": "1.0.0",
+  "description": "Google Apps Script project for cycling event management (GAS + Clasp + Docker)",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "server": "node server.js",
+    "server:docker": "docker run -it -p 3000:3000 -v $(pwd):/app clasp-docker node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "jest": "^29.0.0"

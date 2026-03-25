@@ -1,16 +1,10 @@
 {
-  "scriptId": "1Pna-r9uyruBlI_1kB9YETYrXDPi531IoURTrKfVyfoCgYZ4FbDgdSQ9I",
-  "rootDir": "",
-  "scriptExtensions": [
-    ".js",
-    ".gs"
-  ],
-  "htmlExtensions": [
-    ".html"
-  ],
-  "jsonExtensions": [
-    ".json"
-  ],
-  "filePushOrder": [],
-  "skipSubdirectories": false
+    "scriptId":"1nR1PejoHtpVfNIdng8En6IL5NifhNR9ZLPLxqdzNRjxFcVPOGCEQ5MO5",
+    "rootDir":"./src",
+    "scriptExtensions":[".js",".gs"],
+    "htmlExtensions":[".html"],
+    "jsonExtensions":[".json"],
+    "filePushOrder":["src/Server/Utils.js","src/App.js"],
+    "skipSubdirectories":false,
+    "projectId":"detailsorganisation"
 }

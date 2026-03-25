@@ -1,0 +1,171 @@
+name: Deploy to PRODUCTION
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semantic version (format: major.minor.patch, e.g. 1.2.3)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (optional, auto-generated from commits if empty)'
+        required: false
+        type: string
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
+    
+    outputs:
+      release_url: ${{ steps.create-release.outputs.html_url }}
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format. Use semantic versioning (e.g., 1.2.3)"
+            exit 1
+          fi
+          echo "✅ Version format valid: v${{ github.event.inputs.version }}"
+      
+      - name: Check if tag already exists
+        run: |
+          if git rev-parse "v${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "❌ Tag v${{ github.event.inputs.version }} already exists"
+            exit 1
+          fi
+          echo "✅ Tag v${{ github.event.inputs.version }} is available"
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install tools
+        run: |
+          npm install
+          npm install -g @google/clasp
+      
+      - name: Authenticate with Google
+        run: |
+          echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+      
+      - name: Push code to GAS
+        run: |
+          echo "📤 Pushing code to Google Apps Script..."
+          cd app
+          clasp push --force
+          echo "✅ Code pushed successfully"
+      
+      - name: Deploy to PRODUCTION
+        id: deploy
+        run: |
+          echo "🚀 Deploying to production..."
+          cd app
+          clasp deploy --description "Production Release v${{ github.event.inputs.version }} - Commit: ${{ github.sha }}"
+          echo "✅ Deployment successful"
+          echo "deployment_success=true" >> $GITHUB_OUTPUT
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "📋 Generating changelog..."
+          
+          # Get last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LAST_TAG" ]; then
+            echo "ℹ️ No previous tag found, including all commits"
+            COMMIT_LOG=$(git log --oneline --format="- %h: %s" | head -30)
+          else
+            echo "ℹ️ Commits since $LAST_TAG"
+            COMMIT_LOG=$(git log ${LAST_TAG}..HEAD --oneline --format="- %h: %s")
+          fi
+          
+          # Build comprehensive changelog
+          BODY="## 📦 Release v${{ github.event.inputs.version }}"
+          BODY+=$'\n\n**Status:** ✅ Production Deployment Complete'
+          BODY+=$'\n\n### 🎯 Release Information'
+          BODY+=$'\n- **Version:** v${{ github.event.inputs.version }}'
+          BODY+=$'\n- **Deployed by:** [${{ github.actor }}](https://github.com/${{ github.actor }})'
+          BODY+=$'\n- **Timestamp:** '"$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          BODY+=$'\n- **Commit:** [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})'
+          BODY+=$'\n\n### 📝 Changes'
+          BODY+=$'\n'
+          BODY+=$'\n'"${COMMIT_LOG}"
+          
+          # Add custom notes if provided
+          if [ -n "${{ github.event.inputs.release_notes }}" ]; then
+            BODY+=$'\n\n### 📌 Release Notes'
+            BODY+=$'\n'
+            BODY+=$'\n'"${{ github.event.inputs.release_notes }}"
+          fi
+          
+          BODY+=$'\n\n### 🔗 Links'
+          BODY+=$'\n- **[Production URL](https://script.google.com/macros/d/${{ secrets.PROD_SCRIPT_ID }}/usercache)** - Live application'
+          BODY+=$'\n- **[Google Apps Script Editor](https://script.google.com/home)** - Manage deployments'
+          BODY+=$'\n- **[Compare Changes](https://github.com/${{ github.repository }}/compare/'"${LAST_TAG}"'...HEAD)** - View all changes'
+          
+          BODY+=$'\n\n### ℹ️ Deployment Details'
+          BODY+=$'\n- **Production Script ID:** \`${{ secrets.PROD_SCRIPT_ID }}\`'
+          BODY+=$'\n- **Deployment ID:** \`${{ secrets.PROD_DEPLOYMENT_ID }}\`'
+          BODY+=$'\n- **GitHub Actions Run:** [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+          
+          # Save to file for next step
+          echo "$BODY" > /tmp/release_body.txt
+          echo "✅ Changelog generated"
+      
+      - name: Create Git tag
+        run: |
+          echo "🏷️  Creating Git tag v${{ github.event.inputs.version }}..."
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ github.event.inputs.version }}" -m "Production Release v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
+          echo "✅ Git tag created and pushed"
+      
+      - name: Create GitHub Release
+        id: create-release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ github.event.inputs.version }}
+          name: Release v${{ github.event.inputs.version }}
+          bodyFile: /tmp/release_body.txt
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Notify deployment success
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `✅ **Production Release v${{ github.event.inputs.version }}** deployed successfully!\n\n🔗 [View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ github.event.inputs.version }})\n\n📍 [Production URL](https://script.google.com/macros/d/${{ secrets.PROD_SCRIPT_ID }}/usercache)\n\n⏱️ Deployed at: ${new Date().toISOString()}`
+            })
+      
+      - name: Notify deployment failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `❌ **Production Release v${{ github.event.inputs.version }}** failed!\n\n🔍 [View workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n⚠️ Please investigate and retry.`
+            })

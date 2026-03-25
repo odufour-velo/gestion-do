@@ -1,0 +1,22 @@
+# Do not share node dependencies
+node_modules/
+package.json
+package-lock.json
+
+# Do not send Git configuration
+.git/
+.gitignore
+
+# Do not send CLASP configuration
+.clasp.json
+README.md
+
+# Ignore tests
+tests/
+**/*.test.js
+
+# Ignore build folders
+dist/
+build/
+
+Makefile
