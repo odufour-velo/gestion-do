@@ -34,7 +34,8 @@ jobs:
           TEST_SCRIPT_ID: ${{ secrets.TEST_SCRIPT_ID }}
           TEST_DEPLOYMENT_ID: ${{ secrets.TEST_DEPLOYMENT_ID }}
           DEPLOYMENT_SHA: ${{ github.sha }}
-        run: .docker/test/deploy.sh
+        run: |
+          bash .docker/test/deploy.sh
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6
