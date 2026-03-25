@@ -1,8 +1,6 @@
 
 IMAGE=clasp-docker
-SCRIPTID=1Pna-r9uyruBlI_1kB9YETYrXDPi531IoURTrKfVyfoCgYZ4FbDgdSQ9I
-
-TEST_DEPLOYMENT_ID=AKfycbwDcFNWfIRDqyVyTV3_FNeWxRECAvGY81XL1bivDaWZrQxjsGV_ojbbaAVLuwBVbwbEhw
+TEST_DEPLOYMENT_ID=AKfycbzOOO_1xdjW9pSXl70lao5Cy7_KBbPfTg0uw-XyrbdWKcSgpxagqJTBWtsiFwNpuWER
 
 build:
 	docker build -t $(IMAGE) .
@@ -11,25 +9,23 @@ build-dev:
 	docker build --target dev -t $(IMAGE)-dev .
 	docker build --target test -t $(IMAGE)-tester .
 
+deploy-test-as-ci:
+	docker build -t gas-deploy-local -f .docker/deploy-test/Dockerfile .
+	docker run --rm --env-file .docker/deploy-test/.env gas-deploy-local
+
 # NOTE: If clasp-creds does not exist, create it with:
 # docker volume create clasp-creds
 1st-login:
-	docker run -it -p 9090:9090 -v $(PWD):/app -v clasp-creds:/root $(IMAGE) login --redirect-port 9090
-
-login:
-	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) list
-
-clone:
-	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) clone $(SCRIPTID)
+	docker run -it -p 9090:9090 -v $(PWD):/app -v ${PWD}/creds:/root $(IMAGE) login --redirect-port 9090
 
 push:
-	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) push
+	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) push
 
 pull:
-	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) pull
+	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) pull
 
 deploy-test: push
-	docker run --rm -v $(PWD)/app:/app -v clasp-creds:/root $(IMAGE) deploy --deploymentId $(TEST_DEPLOYMENT_ID) --description 'Auto-deploy'
+	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) deploy --deploymentId $(TEST_DEPLOYMENT_ID) --description 'Auto-deploy'
 
 # ========== LOCAL TESTING ==========
 
