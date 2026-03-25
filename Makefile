@@ -15,7 +15,7 @@ deploy-test-as-ci:
 
 # NOTE: If clasp-creds does not exist, create it with:
 # docker volume create clasp-creds
-1st-login:
+update-credentials:
 	docker run -it -p 9090:9090 -v $(PWD):/app -v ${PWD}/creds:/root $(IMAGE) login --redirect-port 9090
 
 push:

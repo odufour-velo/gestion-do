@@ -1,5 +1,5 @@
 # --- Base Stage ---
-FROM node:lts-slim as base
+FROM node:18-slim as base
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
