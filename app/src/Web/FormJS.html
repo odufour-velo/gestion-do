@@ -16,6 +16,13 @@ function renderEpreuves() {
     document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
     document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
 
+    // Change the panel title depending on the type
+    if (discipline.toLowerCase() === "route" && typeRoute === "course_ligne"){
+        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
+    } else {
+        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";
+    }
+    
     addEpreuveRow();
 }
 
