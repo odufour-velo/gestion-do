@@ -11,7 +11,7 @@ WORKDIR /
 COPY ./app/src ./app/src
 
 # On rend le script de déploiement exécutable (voir étape suivante)
-COPY .docker/test/deploy.sh .
+COPY .github/scripts/deploy.sh .
 RUN chmod +x /deploy.sh
 
 ENTRYPOINT ["/bin/bash", "/deploy.sh"]

@@ -2,7 +2,7 @@ name: Deploy to TEST
 
 on:
   push:
-    branches: [feature/**, bugfix/**]
+    branches: [devel]
 
 permissions:
   issues: write
@@ -35,7 +35,7 @@ jobs:
           TEST_DEPLOYMENT_ID: "${{ secrets.TEST_DEPLOYMENT_ID }}"
           DEPLOYMENT_SHA: "${{ github.sha }}"
         run: |
-          bash .docker/test/deploy.sh
+          bash .github/script/deploy.sh
       
       - name: Comment PR with deployment info
         uses: actions/github-script@v6
