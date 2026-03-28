@@ -17,7 +17,7 @@ function renderEpreuves() {
     document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
 
     // Change the panel title depending on the type
-    if (discipline.toLowerCase() === "route" && typeRoute === "course_ligne"){
+    if (discipline.toLowerCase() === "route" && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")){
         document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
     } else {
         document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";
@@ -47,7 +47,7 @@ function addEpreuveRow() {
             <div class="field"><label>Engag. (€)</label><input type="number" step="0.5" name="prix_engag[]"></div>
             <div class="field"><label>Grille</label><input type="text" name="grille_prix[]"></div>
         `;
-    } else if (discipline.toLowerCase() === 'route' && typeRoute === 'course_ligne') {
+    } else if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
         rowHtml += `
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
             <div class="field"><label>Ville Départ</label><input type="text" name="v_dep[]"></div>
