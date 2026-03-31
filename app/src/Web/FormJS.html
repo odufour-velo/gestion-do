@@ -151,6 +151,9 @@ function handleFormSubmit(e){
         status.innerText = "✅ Données enregistrées avec succès !";
         status.className = "status-hidden status-success";
         btn.innerText = "Enregistré !";
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
       })
       .withFailureHandler((error) => {
         // Enable button in case of error
@@ -199,12 +202,16 @@ function loadCategories() {
         }
       });
     })
+    .withFailureHandler((error) => {
+      console.error("Erreur lors du chargement des catégories:", error);
+    })
     .getCategories();
 }
 
 // Execute on page load
-window.onload = function() {
+window.addEventListener('load', () => {
   loadDisciplines();
-};
+  loadCategories();
+});
 
 </script>
