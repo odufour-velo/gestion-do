@@ -12,6 +12,9 @@ function renderEpreuves() {
     if (!discipline) { epreuvesContainer.classList.add('hidden'); return; }
     epreuvesContainer.classList.remove('hidden');
     
+    document.getElementById('date').classList.toggle('hidden', discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23"));
+    document.getElementById('date').required = !(discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23"));
+
     document.getElementById('typeRoutePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route');
     document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
     document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
@@ -49,10 +52,11 @@ function addEpreuveRow() {
         `;
     } else if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
         rowHtml += `
-            <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
-            <div class="field"><label>Ville Départ</label><input type="text" name="v_dep[]"></div>
-            <div class="field"><label>Ville Arrivée</label><input type="text" name="v_arr[]"></div>
-            <div class="field"><label>Distance (km)</label><input type="number" step="0.1" name="dist[]"></div>
+            <div class="field"><label>Date</label><input type="date" name="date[]" required></div>
+            <div class="field"><label>Départ</label><input type="time" name="h_dep[]" required></div>
+            <div class="field"><label>Ville Départ</label><input type="text" name="v_dep[]" required></div>
+            <div class="field"><label>Ville Arrivée</label><input type="text" name="v_arr[]" required></div>
+            <div class="field"><label>Distance (km)</label><input type="number" step="0.1" name="dist[]" required></div>
         `;
     } else {
         rowHtml += `
