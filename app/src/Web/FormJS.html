@@ -12,8 +12,21 @@ function renderEpreuves() {
     if (!discipline) { epreuvesContainer.classList.add('hidden'); return; }
     epreuvesContainer.classList.remove('hidden');
     
-    document.getElementById('date').classList.toggle('hidden', discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23"));
-    document.getElementById('date').required = !(discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23"));
+    if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
+        document.getElementById('dateLabel').classList.toggle('hidden', true);
+        document.getElementById('date').classList.toggle('hidden', true);
+        document.getElementById('date').required = false;
+        document.getElementById('locationLabel').classList.toggle('hidden', true);
+        document.getElementById('location').classList.toggle('hidden', true);
+        document.getElementById('location').required = false;
+    } else {
+        document.getElementById('dateLabel').classList.toggle('hidden', false);
+        document.getElementById('date').classList.toggle('hidden', false);
+        document.getElementById('date').required = true;
+        document.getElementById('locationLabel').classList.toggle('hidden', false);
+        document.getElementById('location').classList.toggle('hidden', false);
+        document.getElementById('location').required = true;
+    }
 
     document.getElementById('typeRoutePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route');
     document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
@@ -140,11 +153,11 @@ function handleFormSubmit(e){
         btn.innerText = "Enregistré !";
       })
       .withFailureHandler((error) => {
-      // Enable button in case of error
-      status.innerText = "❌ Erreur : " + error.message;
-      status.className = "status-hidden status-error";
-      btn.disabled = false;
-      btn.innerText = "Réessayer l'envoi";
+        // Enable button in case of error
+        status.innerText = "❌ Erreur : " + error.message;
+        status.className = "status-hidden status-error";
+        btn.disabled = false;
+        btn.innerText = "Réessayer l'envoi";
       })
       .processForm(finalData);
 
