@@ -21,6 +21,16 @@ function slugify(text) {
 
 function generateUUID(data) {
 
+  if (Array.isArray(data.date)) {
+    data.date = data.date[0];
+  }
+  
+  if (data.v_dep && Array.isArray(data.v_dep)) {
+    data.location = data.v_dep[0];
+  } else if (data.v_dep && typeof data.v_dep === 'string') {
+    data.location = data.v_dep;
+  }
+
   const datePart = data.date.replace(/-/g, ''); // 2026-01-17 -> 20260117
   const orgaPart = slugify(data.organizer).toUpperCase();
   const locPart  = slugify(data.location).toUpperCase();
