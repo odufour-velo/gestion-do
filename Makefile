@@ -30,7 +30,7 @@ deploy-test: push
 # ========== LOCAL TESTING ==========
 
 server-dev: build-dev
-	docker run -it -p 3000:3000 -v $(PWD):/app $(IMAGE)-dev
+	docker run -it -d --name do-server -p 3000:3000 -v $(PWD):/app $(IMAGE)-dev
 
 test-unit:
 	docker run --rm $(IMAGE)-tester npm test
