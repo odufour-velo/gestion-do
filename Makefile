@@ -1,6 +1,6 @@
 
 IMAGE=clasp-docker
-TEST_DEPLOYMENT_ID=AKfycbzOOO_1xdjW9pSXl70lao5Cy7_KBbPfTg0uw-XyrbdWKcSgpxagqJTBWtsiFwNpuWER
+TEST_DEPLOYMENT_ID=AKfycbwiUvouTs_lIu3zOZr0d6W41aXV5xXlAq6FvMsIqAGJGXzGaDbebGmz2vOZSqxDEhcd
 
 build:
 	docker build -t $(IMAGE) .
@@ -19,7 +19,7 @@ update-credentials:
 	docker run -it -p 9090:9090 -v $(PWD):/app -v ${PWD}/creds:/root $(IMAGE) login --redirect-port 9090
 
 push:
-	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) push
+	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) push -f
 
 pull:
 	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) pull
