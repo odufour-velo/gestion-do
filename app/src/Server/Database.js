@@ -69,9 +69,12 @@ const Database = {
           data.date[i],
           data.v_dep[i],
           "", // Pas de distance circuit
-          data.h_doss,
-          (data.h_dep ? data.h_dep[i] : ""),
           "", // Pas de tours
+          (i == 0 ? data.date_perm : ""),
+          (i == 0 ? data.h_perm : ""),
+          (i == 0 ? data.h_ds : ""),
+          (i == 0 ? data.perm_addr : ""),
+          (data.h_dep ? data.h_dep[i] : ""),
           (data.dist ? data.dist[i] : ""),
           (data.v_dep ? data.v_dep[i] : ""),
           (data.v_arr ? data.v_arr[i] : ""),
@@ -97,9 +100,10 @@ const Database = {
           data.date,
           data.location,
           data.distance_circuit || "",
+          (data.tours ? data.tours[i] : ""),
+          data.date,
           (data.h_doss ? data.h_doss[i] : ""),
           (data.h_dep ? data.h_dep[i] : ""),
-          (data.tours ? data.tours[i] : ""),
           (data.dist_totale ? data.dist_totale[i] : ""),
           "", // Ville départ (N/A circuit)
           "", // Ville arrivée (N/A circuit)
