@@ -2,6 +2,7 @@
  * Manage all interactions with the Google Sheets database
  */
 const Database = {
+
   SHEET_NAME: "Epreuves",
 
   /**
@@ -11,27 +12,23 @@ const Database = {
   validateEpreuve: function(data) {
     if (!data) throw new Error("Données manquantes");
 
-    const requiredFields = ["discipline", "organizer", "mail", "name", "date", "location"];
+    const requiredFields = ["discipline", "organizer", "mail", "name"];
+
     requiredFields.forEach(field => {
       if (!data[field] || data[field].toString().trim() === "") {
         throw new Error(`Champ requis manquant : ${field}`);
       }
     });
 
-    const dateValue = new Date(data.date);
-    if (isNaN(dateValue.getTime())) {
-      throw new Error("Date invalide");
-    }
-
     const mailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!mailPattern.test(data.mail)) {
       throw new Error("Adresse email invalide");
     }
-
+/*
     if (data.h_dep && data.h_doss && data.h_dep.length !== data.h_doss.length) {
       throw new Error("Le nombre d'horaires de départ et de dossards doit être cohérent");
     }
-
+*/
     if (data.cat_min && data.cat_max && data.cat_min.length !== data.cat_max.length) {
       throw new Error("Le nombre de catégories min et max doit être identique");
     }
@@ -58,31 +55,34 @@ const Database = {
     const rows = [];
 
     // CAS 1 : ROUTE PAR ÉTAPES (Concaténation sur une seule ligne)
-    if (data.discipline.toLowerCase() === 'route' && data.type_route === 'course_ligne') {
-      rows.push([
-        uuid,
-        data.discipline,
-        data.type_route,
-        data.organizer,
-        data.mail,
-        data.tel || "",
-        data.name,
-        data.date,
-        data.location,
-        "", // Pas de distance circuit
-        (data.h_doss ? data.h_doss.join(" | ") : ""),
-        (data.h_dep ? data.h_dep.join(" | ") : ""),
-        "", // Pas de tours
-        (data.dist ? data.dist.join(" | ") : ""),
-        (data.v_dep ? data.v_dep.join(" | ") : ""),
-        (data.v_arr ? data.v_arr.join(" | ") : ""),
-        (data.cat_min ? data.cat_min[0] : ""),
-        (data.cat_max ? data.cat_max[0] : ""),
-        data.engagement || "",
-        data.grid || "",
-        data.infos || "",
-        timestamp
-      ]);
+    if (data.discipline.toLowerCase() === 'route' && (data.type_route === "course_ligne" || data.type_route === "u19" || data.type_route === "u23")) {
+      const nbEtapes = data.h_dep ? data.h_dep.length : 1;
+      for (let i = 0; i < nbEtapes; i++) {
+        rows.push([
+          uuid,
+          data.discipline,
+          data.type_route,
+          data.organizer,
+          data.mail,
+          data.tel || "",
+          data.name,
+          data.date[i],
+          data.v_dep[i],
+          "", // Pas de distance circuit
+          data.h_doss,
+          (data.h_dep ? data.h_dep[i] : ""),
+          "", // Pas de tours
+          (data.dist ? data.dist[i] : ""),
+          (data.v_dep ? data.v_dep[i] : ""),
+          (data.v_arr ? data.v_arr[i] : ""),
+          data.cat_min,
+          data.cat_max,
+          data.engagement || "",
+          data.grid || "",
+          data.infos || "",
+          timestamp
+        ]);
+      }
     } else {
       const nbEpreuves = data.h_dep ? data.h_dep.length : 1;
       for (let i = 0; i < nbEpreuves; i++) {
