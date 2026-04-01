@@ -152,7 +152,7 @@ function handleFormSubmit(e){
         status.className = "status-hidden status-success";
         btn.innerText = "Enregistré !";
         setTimeout(() => {
-            location.reload();
+            window.location.reload();
         }, 1500);
       })
       .withFailureHandler((error) => {

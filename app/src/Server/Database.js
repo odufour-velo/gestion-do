@@ -56,31 +56,33 @@ const Database = {
 
     // CAS 1 : ROUTE PAR ÉTAPES (Concaténation sur une seule ligne)
     if (data.discipline.toLowerCase() === 'route' && (data.type_route === "course_ligne" || data.type_route === "u19" || data.type_route === "u23")) {
-      rows.push([
-        uuid,
-        data.discipline,
-        data.type_route,
-        data.organizer,
-        data.mail,
-        data.tel || "",
-        data.name,
-        data.date[0],
-        data.date[data.date.length - 1],
-        data.v_dep[0],
-        "", // Pas de distance circuit
-        (data.h_doss ? data.h_doss.join(" | ") : ""),
-        (data.h_dep ? data.h_dep.join(" | ") : ""),
-        "", // Pas de tours
-        (data.dist ? data.dist.join(" | ") : ""),
-        (data.v_dep ? data.v_dep.join(" | ") : ""),
-        (data.v_arr ? data.v_arr.join(" | ") : ""),
-        (data.cat_min ? data.cat_min[0] : ""),
-        (data.cat_max ? data.cat_max[0] : ""),
-        data.engagement || "",
-        data.grid || "",
-        data.infos || "",
-        timestamp
-      ]);
+      const nbEtapes = data.h_dep ? data.h_dep.length : 1;
+      for (let i = 0; i < nbEtapes; i++) {
+        rows.push([
+          uuid,
+          data.discipline,
+          data.type_route,
+          data.organizer,
+          data.mail,
+          data.tel || "",
+          data.name,
+          data.date[i],
+          data.v_dep[i],
+          "", // Pas de distance circuit
+          data.h_doss,
+          (data.h_dep ? data.h_dep[i] : ""),
+          "", // Pas de tours
+          (data.dist ? data.dist[i] : ""),
+          (data.v_dep ? data.v_dep[i] : ""),
+          (data.v_arr ? data.v_arr[i] : ""),
+          data.cat_min,
+          data.cat_max,
+          data.engagement || "",
+          data.grid || "",
+          data.infos || "",
+          timestamp
+        ]);
+      }
     } else {
       const nbEpreuves = data.h_dep ? data.h_dep.length : 1;
       for (let i = 0; i < nbEpreuves; i++) {
@@ -92,7 +94,6 @@ const Database = {
           data.mail,
           data.tel || "",
           data.name,
-          data.date,
           data.date,
           data.location,
           data.distance_circuit || "",
