@@ -19,6 +19,7 @@ function renderEpreuves() {
         document.getElementById('locationLabel').classList.toggle('hidden', true);
         document.getElementById('location').classList.toggle('hidden', true);
         document.getElementById('location').required = false;
+        document.getElementById('permanence').classList.toggle('hidden', false);
     } else {
         document.getElementById('dateLabel').classList.toggle('hidden', false);
         document.getElementById('date').classList.toggle('hidden', false);
@@ -26,6 +27,7 @@ function renderEpreuves() {
         document.getElementById('locationLabel').classList.toggle('hidden', false);
         document.getElementById('location').classList.toggle('hidden', false);
         document.getElementById('location').required = true;
+        document.getElementById('permanence').classList.toggle('hidden', true);
     }
 
     document.getElementById('typeRoutePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route');
@@ -151,9 +153,7 @@ function handleFormSubmit(e){
         status.innerText = "✅ Données enregistrées avec succès !";
         status.className = "status-hidden status-success";
         btn.innerText = "Enregistré !";
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500);
+        document.getElementById('declarationForm').reset();
       })
       .withFailureHandler((error) => {
         // Enable button in case of error
