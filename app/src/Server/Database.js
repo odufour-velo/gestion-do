@@ -86,7 +86,7 @@ const Database = {
           timestamp
         ]);
       }
-    } else {
+    } else if (Array.isArray(data.h_dep) && data.h_dep.length > 1) {
       const nbEpreuves = data.h_dep ? data.h_dep.length : 1;
       for (let i = 0; i < nbEpreuves; i++) {
         rows.push([
@@ -115,6 +115,32 @@ const Database = {
           timestamp
         ]);
       }
+    } else {
+      rows.push([
+          uuid,
+          data.discipline,
+          data.type_route || "N/A",
+          data.organizer,
+          data.mail,
+          data.tel || "",
+          data.name,
+          data.date,
+          data.location,
+          data.distance_circuit || "",
+          data.tours,
+          data.date,
+          data.h_doss || "",
+          data.h_dep || "",
+          data.dist_totale || "",
+          "", // Ville départ (N/A circuit)
+          "", // Ville arrivée (N/A circuit)
+          data.cat_min || "",
+          data.cat_max || "",
+          data.engagement || "",
+          data.grille_prix || "",
+          data.infos || "",
+          timestamp
+        ]);
     }
 
     if (rows.length === 0) {

@@ -34,14 +34,20 @@ function renderEpreuves() {
     document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
     document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
 
+    document.getElementById('bmx_heures').classList.toggle('hidden', discipline.toLowerCase() !== 'bmx');
+
     // Change the panel title depending on the type
-    if (discipline.toLowerCase() === "route" && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")){
-        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
+    if (discipline.toLowerCase() !== "bmx"){
+        if (discipline.toLowerCase() === "route" && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")){
+            document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
+        } else {
+            document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";
+        }
+        
+        addEpreuveRow();
     } else {
-        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";
+        document.getElementById('epreuvesContainer').classList.toggle('hidden', true);
     }
-    
-    addEpreuveRow();
 }
 
 function addEpreuveRow() {
