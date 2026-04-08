@@ -64,10 +64,13 @@ Pour toute question, contacter Arnaud SEVOZ: <a href="mailto:asevoz@auvergnerhon
                 </div>
             </div>
             <div id="prixGeneraux" class="row hidden">
-                <div class="field"><label>Catégorie Min</label><select name="cat_min[]" class="categories"><option value="">-- Choisir --</option></select></div>
-                <div class="field"><label>Catégorie Max</label><select name="cat_max[]" class="categories"><option value="">-- Choisir --</option></select></div>
-                <div class="field"><label>Prix engagement (€)</label><input type="number" step="0.5" name="engagement"></div>
-                <div class="field"><label>Grille de prix</label><input type="text" name="grid"></div>
+                <div class="field"><label>Catégorie Min H.</label><select name="cat_min_h" class="categories"><option value="">-- Choisir --</option></select></div>
+                <div class="field"><label>Catégorie Max H.</label><select name="cat_max_h" class="categories"><option value="">-- Choisir --</option></select></div>
+                <div class="field"><label>Catégorie Min F.</label><select name="cat_min_f" class="categories"><option value="">-- Choisir --</option></select></div>
+                <div class="field"><label>Catégorie Max F.</label><select name="cat_max_f" class="categories"><option value="">-- Choisir --</option></select></div>
+                <div class="field"><label>Nb coureurs max</label><input type="number" step="1" name="limitations"></div>
+                <div class="field"><label>Prix engagement (€)</label><input type="number" step="0.5" name="prix_engag"></div>
+                <div class="field"><label>Grille de prix</label><input type="text" name="grille_prix"></div>
             </div>
             <div id="permanence" class="row">
                 <div class="field"><label>Date de permanence</label><input type="date" id="date_perm" name="date_perm"></div>
@@ -78,8 +81,8 @@ Pour toute question, contacter Arnaud SEVOZ: <a href="mailto:asevoz@auvergnerhon
         </div>
 
         <div id="bmx_heures" class="row">
-            <div class="field"><label>Heure des essais</label><input type="time" id="h_doss" name="h_doss" required></div>
-            <div class="field"><label>Heure début compétition</label><input type="time" id="h_dep" name="h_dep" required></div>
+            <div class="field"><label>Heure des essais</label><input type="time" id="h_doss" name="h_doss"></div>
+            <div class="field"><label>Heure début compétition</label><input type="time" id="h_dep" name="h_dep"></div>
         </div>
 
         <div id="epreuvesContainer" class="panel hidden">
