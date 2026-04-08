@@ -6,13 +6,37 @@ function renderEpreuves() {
 
     const epreuvesContainer = document.getElementById('epreuvesContainer');
     const discipline = document.getElementById('discipline').value;
-    const typeRoute = document.getElementById('type_route').value;
     epreuvesList.innerHTML = '';
-    
     if (!discipline) { epreuvesContainer.classList.add('hidden'); return; }
     epreuvesContainer.classList.remove('hidden');
+
+    const typeDisciplineSelect = document.getElementById('type_discipline');
+    document.getElementById('typeDisciplinePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route' && discipline.toLowerCase() !== 'vtt');
+
+    const disciplineClass = discipline.toLowerCase();
+    Array.from(typeDisciplineSelect.options).forEach(option => {
+        if (!option.value) {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+
+        const optionMatches = option.classList.contains(disciplineClass);
+        option.hidden = !optionMatches;
+        option.disabled = !optionMatches;
+    });
+
+    const selectedOption = typeDisciplineSelect.selectedOptions[0];
+    if (!selectedOption || selectedOption.hidden || selectedOption.disabled || !selectedOption.classList.contains(disciplineClass)) {
+        typeDisciplineSelect.value = "";
+    }
+
+    const typeDiscipline = typeDisciplineSelect.value;
+
+    const isBMX = discipline.toLowerCase() === 'bmx';
+    const isRouteEtape = discipline.toLowerCase() === 'route' && (typeDiscipline === "course_ligne" || typeDiscipline === "u19" || typeDiscipline === "u23");
     
-    if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
+    if (isRouteEtape) {
         document.getElementById('dateLabel').classList.toggle('hidden', true);
         document.getElementById('date').classList.toggle('hidden', true);
         document.getElementById('date').required = false;
@@ -30,23 +54,21 @@ function renderEpreuves() {
         document.getElementById('permanence').classList.toggle('hidden', true);
     }
 
-    document.getElementById('typeRoutePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route');
-    document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
-    document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
+    document.getElementById('distCircuitGeneral').classList.toggle('hidden', isRouteEtape);
+    document.getElementById('prixGeneraux').classList.toggle('hidden', !(isRouteEtape));
 
-    document.getElementById('bmx_heures').classList.toggle('hidden', discipline.toLowerCase() !== 'bmx');
+    document.getElementById('bmx_heures').classList.toggle('hidden', !isBMX);
+    document.getElementById('epreuvesContainer').classList.toggle('hidden', isBMX);
 
     // Change the panel title depending on the type
-    if (discipline.toLowerCase() !== "bmx"){
-        if (discipline.toLowerCase() === "route" && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")){
-            document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
-        } else {
-            document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";
-        }
-        
-        addEpreuveRow();
+    if (isRouteEtape){
+        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
     } else {
-        document.getElementById('epreuvesContainer').classList.toggle('hidden', true);
+        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";        
+    }
+
+    if (!isBMX) {
+        addEpreuveRow();
     }
 }
 
@@ -55,12 +77,12 @@ function addEpreuveRow() {
   const catOptions = document.getElementById('categoriesTemplate').innerHTML || '<option value="">-- Choisir --</option>';
 
     const discipline = document.getElementById('discipline').value;
-    const typeRoute = document.getElementById('type_route').value;
+    const typeDiscipline = document.getElementById('type_discipline').value;
     const div = document.createElement('div');
     div.className = 'epreuve-item';
 
     let rowHtml = '<div class="row">';
-    if (discipline.toLowerCase() === 'route' && typeRoute === 'circuit') {
+    if ((discipline.toLowerCase() === 'route' && typeDiscipline === 'circuit') || (discipline.toLowerCase() === 'vtt' && typeDiscipline === 'xc')) {
         rowHtml += `
             <div class="field"><label>Dossards</label><input type="time" name="h_doss[]"></div>
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
@@ -74,7 +96,7 @@ function addEpreuveRow() {
             <div class="field"><label>Engag. (€)</label><input type="number" step="0.5" name="prix_engag[]"></div>
             <div class="field"><label>Grille</label><input type="text" name="grille_prix[]"></div>
         `;
-    } else if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
+    } else if (discipline.toLowerCase() === 'route' && (typeDiscipline === "course_ligne" || typeDiscipline === "u19" || typeDiscipline === "u23")) {
         rowHtml += `
             <div class="field"><label>Date</label><input type="date" name="date[]" required></div>
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]" required></div>

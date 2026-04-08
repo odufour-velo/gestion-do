@@ -7,7 +7,7 @@ const Database = {
   FIELD_MAP: {
     uuid: "UUID",
     discipline: "Discipline",
-    type_route: "Type Route",
+    type_discipline: "Type Discipline",
     organizer: "Organisateur",
     mail: "Mail",
     tel: "Téléphone",
@@ -160,7 +160,7 @@ const Database = {
 
   isRouteEtapes: function(data) {
     return data.discipline && data.discipline.toString().toLowerCase() === "route" &&
-      ["course_ligne", "u19", "u23"].includes(data.type_route);
+      ["course_ligne", "u19", "u23"].includes(data.type_discipline);
   },
 
   /**

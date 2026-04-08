@@ -32,16 +32,19 @@ Pour toute question, contacter Arnaud SEVOZ: <a href="mailto:asevoz@auvergnerhon
                         <option value="">-- Choisir --</option>
                     </select>
                 </div>
-                <div id="typeRoutePanel" class="field hidden">
-                    <label for="type_route">Type d'épreuve (Route)</label>
-                    <select id="type_route" name="type_route" onchange="renderEpreuves()">
-                        <option value="circuit">Circuit</option>
-                        <option value="course_ligne">Course en ligne / Étapes</option>
-                        <option value="u19">U19</option>
-                        <option value="u23">U23</option>
-                        <option value="chrono">Chrono</option>
-                        <option value="cyclo">Cyclo</option>
-                        <option value="rando">Rando</option>
+                <div id="typeDisciplinePanel" class="field hidden">
+                    <label for="type_discipline">Type d'épreuve</label>
+                    <select id="type_discipline" name="type_discipline" onchange="renderEpreuves()">
+                        <option class="route" value="circuit">Circuit</option>
+                        <option class="route" value="course_ligne">Course en ligne / Étapes</option>
+                        <option class="route" value="u19">U19</option>
+                        <option class="route" value="u23">U23</option>
+                        <option class="route" value="chrono">Chrono</option>
+                        <option class="route" value="cyclo">Cyclo</option>
+                        <option class="route" value="rando">Rando</option>
+                        <option class="vtt" value="xc">XC</option>
+                        <option class="vtt" value="dh">DH</option>
+                        <option class="vtt" value="enduro">Enduro</option>
                     </select>
                 </div>
             </div>
