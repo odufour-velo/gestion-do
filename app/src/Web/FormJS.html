@@ -203,18 +203,29 @@ function handleFormSubmit(e){
 
 function loadDisciplines() {
   google.script.run
-    .withSuccessHandler(function(list) {
+    .withSuccessHandler(function(payload) {
       const select = document.getElementById('discipline');
-      
-      // On vide le "Chargement..."
+      const typeSelect = document.getElementById('type_discipline');
+
+      // On vide l'ancien contenu
       select.innerHTML = '<option value="">-- Choisir --</option>';
-      
+      typeSelect.innerHTML = '<option value="">-- Choisir --</option>';
+
       // On ajoute chaque discipline
-      list.forEach(item => {
+      payload.disciplines.forEach(item => {
         const option = document.createElement('option');
         option.value = item;
         option.text = item;
         select.appendChild(option);
+      });
+
+      // On ajoute les types dynamiquement avec la classe discipline correspondante
+      payload.types.forEach(entry => {
+        const option = document.createElement('option');
+        option.value = entry.type;
+        option.text = entry.type;
+        option.className = entry.discipline.toLowerCase();
+        typeSelect.appendChild(option);
       });
     })
     .getDisciplines();
