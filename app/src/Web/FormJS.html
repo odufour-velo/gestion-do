@@ -6,13 +6,37 @@ function renderEpreuves() {
 
     const epreuvesContainer = document.getElementById('epreuvesContainer');
     const discipline = document.getElementById('discipline').value;
-    const typeRoute = document.getElementById('type_route').value;
     epreuvesList.innerHTML = '';
-    
     if (!discipline) { epreuvesContainer.classList.add('hidden'); return; }
     epreuvesContainer.classList.remove('hidden');
+
+    const typeDisciplineSelect = document.getElementById('type_discipline');
+    document.getElementById('typeDisciplinePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route' && discipline.toLowerCase() !== 'vtt');
+
+    const disciplineClass = discipline.toLowerCase();
+    Array.from(typeDisciplineSelect.options).forEach(option => {
+        if (!option.value) {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+
+        const optionMatches = option.classList.contains(disciplineClass);
+        option.hidden = !optionMatches;
+        option.disabled = !optionMatches;
+    });
+
+    const selectedOption = typeDisciplineSelect.selectedOptions[0];
+    if (!selectedOption || selectedOption.hidden || selectedOption.disabled || !selectedOption.classList.contains(disciplineClass)) {
+        typeDisciplineSelect.value = "";
+    }
+
+    const typeDiscipline = typeDisciplineSelect.value;
+
+    const isBMX = discipline.toLowerCase() === 'bmx';
+    const isRouteEtape = discipline.toLowerCase() === 'route' && (typeDiscipline === "course_ligne" || typeDiscipline === "u19" || typeDiscipline === "u23");
     
-    if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
+    if (isRouteEtape) {
         document.getElementById('dateLabel').classList.toggle('hidden', true);
         document.getElementById('date').classList.toggle('hidden', true);
         document.getElementById('date').required = false;
@@ -30,23 +54,21 @@ function renderEpreuves() {
         document.getElementById('permanence').classList.toggle('hidden', true);
     }
 
-    document.getElementById('typeRoutePanel').classList.toggle('hidden', discipline.toLowerCase() !== 'route');
-    document.getElementById('distCircuitGeneral').classList.toggle('hidden', !(discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
-    document.getElementById('prixGeneraux').classList.toggle('hidden', (discipline.toLowerCase() === 'route' && typeRoute === 'circuit'));
+    document.getElementById('distCircuitGeneral').classList.toggle('hidden', isRouteEtape);
+    document.getElementById('prixGeneraux').classList.toggle('hidden', !(isRouteEtape));
 
-    document.getElementById('bmx_heures').classList.toggle('hidden', discipline.toLowerCase() !== 'bmx');
+    document.getElementById('bmx_heures').classList.toggle('hidden', !isBMX);
+    document.getElementById('epreuvesContainer').classList.toggle('hidden', isBMX);
 
     // Change the panel title depending on the type
-    if (discipline.toLowerCase() !== "bmx"){
-        if (discipline.toLowerCase() === "route" && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")){
-            document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
-        } else {
-            document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";
-        }
-        
-        addEpreuveRow();
+    if (isRouteEtape){
+        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des étapes";
     } else {
-        document.getElementById('epreuvesContainer').classList.toggle('hidden', true);
+        document.getElementById('epreuvesContainer').getElementsByTagName('h2')[0].textContent = "Détails des épreuves";        
+    }
+
+    if (!isBMX) {
+        addEpreuveRow();
     }
 }
 
@@ -55,23 +77,26 @@ function addEpreuveRow() {
   const catOptions = document.getElementById('categoriesTemplate').innerHTML || '<option value="">-- Choisir --</option>';
 
     const discipline = document.getElementById('discipline').value;
-    const typeRoute = document.getElementById('type_route').value;
+    const typeDiscipline = document.getElementById('type_discipline').value;
     const div = document.createElement('div');
     div.className = 'epreuve-item';
 
     let rowHtml = '<div class="row">';
-    if (discipline.toLowerCase() === 'route' && typeRoute === 'circuit') {
+    if ((discipline.toLowerCase() === 'route' && typeDiscipline === 'circuit') || (discipline.toLowerCase() === 'vtt' && typeDiscipline === 'xc')) {
         rowHtml += `
             <div class="field"><label>Dossards</label><input type="time" name="h_doss[]"></div>
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
             <div class="field"><label>Tours</label><input type="number" name="tours[]" oninput="calculerDistLigne(this)"></div>
             <div class="field"><label>Distance Totale</label><input type="text" name="dist_totale[]" readonly placeholder=""></div>
-            <div class="field"><label>Cat. Min</label><select name="cat_min[]">${catOptions}</select></div>
-            <div class="field"><label>Cat. Max</label><select name="cat_max[]">${catOptions}</select></div>
+            <div class="field"><label>Cat. Min H</label><select name="cat_min_h[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Cat. Max H</label><select name="cat_max_h[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Cat. Min F</label><select name="cat_min_f[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Cat. Max F</label><select name="cat_max_f[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Nb coureurs max</label><input type="number" step="1" name="limitations[]"></div>
             <div class="field"><label>Engag. (€)</label><input type="number" step="0.5" name="prix_engag[]"></div>
             <div class="field"><label>Grille</label><input type="text" name="grille_prix[]"></div>
         `;
-    } else if (discipline.toLowerCase() === 'route' && (typeRoute === "course_ligne" || typeRoute === "u19" || typeRoute === "u23")) {
+    } else if (discipline.toLowerCase() === 'route' && (typeDiscipline === "course_ligne" || typeDiscipline === "u19" || typeDiscipline === "u23")) {
         rowHtml += `
             <div class="field"><label>Date</label><input type="date" name="date[]" required></div>
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]" required></div>
@@ -83,8 +108,11 @@ function addEpreuveRow() {
         rowHtml += `
             <div class="field"><label>Dossards</label><input type="time" name="h_doss[]"></div>
             <div class="field"><label>Départ</label><input type="time" name="h_dep[]"></div>
-            <div class="field"><label>Cat. Min</label><select name="cat_min[]">${catOptions}</select></div>
-            <div class="field"><label>Cat. Max</label><select name="cat_max[]">${catOptions}</select></div>
+            <div class="field"><label>Cat. Min H</label><select name="cat_min_h[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Cat. Max H</label><select name="cat_max_h[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Cat. Min F</label><select name="cat_min_f[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Cat. Max F</label><select name="cat_max_f[]" class="categories"><option value="">${catOptions}</option></select></div>
+            <div class="field"><label>Nb coureurs max</label><input type="number" step="1" name="limitations[]"></div>
         `;
     }
     rowHtml += `<button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">✕</button></div>`;
@@ -175,18 +203,29 @@ function handleFormSubmit(e){
 
 function loadDisciplines() {
   google.script.run
-    .withSuccessHandler(function(list) {
+    .withSuccessHandler(function(payload) {
       const select = document.getElementById('discipline');
-      
-      // On vide le "Chargement..."
+      const typeSelect = document.getElementById('type_discipline');
+
+      // On vide l'ancien contenu
       select.innerHTML = '<option value="">-- Choisir --</option>';
-      
+      typeSelect.innerHTML = '<option value="">-- Choisir --</option>';
+
       // On ajoute chaque discipline
-      list.forEach(item => {
+      payload.disciplines.forEach(item => {
         const option = document.createElement('option');
         option.value = item;
         option.text = item;
         select.appendChild(option);
+      });
+
+      // On ajoute les types dynamiquement avec la classe discipline correspondante
+      payload.types.forEach(entry => {
+        const option = document.createElement('option');
+        option.value = entry.type;
+        option.text = entry.type;
+        option.className = entry.discipline.toLowerCase();
+        typeSelect.appendChild(option);
       });
     })
     .getDisciplines();
