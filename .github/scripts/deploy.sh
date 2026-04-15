@@ -13,7 +13,7 @@ EOF
 # Simulation de l'étape B : Configuration
 cat <<EOF > .clasp.json
 {
-    "scriptId":"$TEST_SCRIPT_ID",
+    "scriptId":"$SCRIPT_ID",
     "rootDir":"./src",
     "scriptExtensions":[".js",".gs"],
     "htmlExtensions":[".html"],
@@ -25,4 +25,4 @@ cat <<EOF > .clasp.json
 EOF
 
 clasp push --force
-clasp deploy --deploymentId "$TEST_DEPLOYMENT_ID" --description "Deploy $DEPLOYMENT_SHA"
+clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "Deploy $DEPLOYMENT_SHA"

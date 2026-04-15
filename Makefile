@@ -9,8 +9,12 @@ build-dev:
 	docker build --target dev -t $(IMAGE)-dev .
 	docker build --target test -t $(IMAGE)-tester .
 
+deploy-prod-as-ci:
+	docker build -t gas-deploy-local -f .docker/Dockerfile .
+	docker run --rm --env-file .docker/prod/.env gas-deploy-local
+
 deploy-test-as-ci:
-	docker build -t gas-deploy-local -f .docker/test/Dockerfile .
+	docker build -t gas-deploy-local -f .docker/Dockerfile .
 	docker run --rm --env-file .docker/test/.env gas-deploy-local
 
 # NOTE: If clasp-creds does not exist, create it with:

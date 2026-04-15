@@ -49,33 +49,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
       
-      - name: Install tools
-        run: |
-          npm install
-          npm install -g @google/clasp
+      - name: Install clasp
+        run: npm install -g @google/clasp
       
-      - name: Authenticate with Google
+      - name: Deploy to GAS
+        env:
+          CLASP_TOKEN_JSON: "${{ secrets.CLASP_TOKEN }}"
+          SCRIPT_ID: "${{ secrets.PROD_SCRIPT_ID }}"
+          DEPLOYMENT_ID: "${{ secrets.PROD_DEPLOYMENT_ID }}"
+          DEPLOYMENT_SHA: "${{ github.sha }}"
         run: |
-          echo "${{ secrets.CLASP_TOKEN }}" > ~/.clasprc.json
-          chmod 600 ~/.clasprc.json
-      
-      - name: Push code to GAS
-        run: |
-          echo "📤 Pushing code to Google Apps Script..."
-          cd app
-          clasp push --force
-          echo "✅ Code pushed successfully"
-      
-      - name: Deploy to PRODUCTION
-        id: deploy
-        run: |
-          echo "🚀 Deploying to production..."
-          cd app
-          clasp deploy --description "Production Release v${{ github.event.inputs.version }} - Commit: ${{ github.sha }}"
-          echo "✅ Deployment successful"
-          echo "deployment_success=true" >> $GITHUB_OUTPUT
+          bash .github/scripts/deploy.sh
       
       - name: Generate changelog
         id: changelog
