@@ -69,11 +69,11 @@ const Database = {
     const uuid = "test-uuid";
     const rows = [];
 
-    if (data.discipline.toLowerCase() === 'route' && data.type_route === 'course_ligne') {
+    if (data.discipline.toLowerCase() === 'route' && data.type_discipline === 'course_ligne') {
       rows.push([
         uuid,
         data.discipline,
-        data.type_route,
+        data.type_discipline,
         data.organizer,
         data.mail,
         data.tel || "",
@@ -100,7 +100,7 @@ const Database = {
         rows.push([
           uuid,
           data.discipline,
-          data.type_route || "N/A",
+          data.type_discipline || "N/A",
           data.organizer,
           data.mail,
           data.tel || "",
@@ -226,7 +226,7 @@ describe("Database.saveEpreuves", () => {
   test("devrait sauvegarder une épreuve route étapes", () => {
     const routeData = {
       discipline: "Route",
-      type_route: "course_ligne",
+      type_discipline: "course_ligne",
       organizer: "Club Cycliste",
       mail: "test@example.com",
       name: "Tour du Pays",
@@ -245,7 +245,7 @@ describe("Database.saveEpreuves", () => {
   test("devrait sauvegarder une épreuve circuit (plusieurs lignes)", () => {
     const circuitData = {
       discipline: "Route",
-      type_route: "circuit",
+      type_discipline: "circuit",
       organizer: "Asso Cyclisme",
       mail: "contact@asso.com",
       name: "Circuit local",

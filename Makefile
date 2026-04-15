@@ -1,6 +1,6 @@
 
 IMAGE=clasp-docker
-TEST_DEPLOYMENT_ID=AKfycbzOOO_1xdjW9pSXl70lao5Cy7_KBbPfTg0uw-XyrbdWKcSgpxagqJTBWtsiFwNpuWER
+TEST_DEPLOYMENT_ID=AKfycbwiUvouTs_lIu3zOZr0d6W41aXV5xXlAq6FvMsIqAGJGXzGaDbebGmz2vOZSqxDEhcd
 
 build:
 	docker build -t $(IMAGE) .
@@ -9,8 +9,12 @@ build-dev:
 	docker build --target dev -t $(IMAGE)-dev .
 	docker build --target test -t $(IMAGE)-tester .
 
+deploy-prod-as-ci:
+	docker build -t gas-deploy-local -f .docker/Dockerfile .
+	docker run --rm --env-file .docker/prod/.env gas-deploy-local
+
 deploy-test-as-ci:
-	docker build -t gas-deploy-local -f .docker/test/Dockerfile .
+	docker build -t gas-deploy-local -f .docker/Dockerfile .
 	docker run --rm --env-file .docker/test/.env gas-deploy-local
 
 # NOTE: If clasp-creds does not exist, create it with:
@@ -19,7 +23,7 @@ update-credentials:
 	docker run -it -p 9090:9090 -v $(PWD):/app -v ${PWD}/creds:/root $(IMAGE) login --redirect-port 9090
 
 push:
-	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) push
+	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) push -f
 
 pull:
 	docker run --rm -v $(PWD)/app:/app -v ${PWD}/creds:/root $(IMAGE) pull
@@ -30,7 +34,7 @@ deploy-test: push
 # ========== LOCAL TESTING ==========
 
 server-dev: build-dev
-	docker run -it -p 3000:3000 -v $(PWD):/app $(IMAGE)-dev
+	docker run -it -d --name do-server -p 3000:3000 -v $(PWD):/app $(IMAGE)-dev
 
 test-unit:
 	docker run --rm $(IMAGE)-tester npm test

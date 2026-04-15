@@ -65,7 +65,18 @@ const mockGAS = {
   
   // Mock function to get disciplines
   getDisciplines: function() {
-    return ["Route", "VTT", "Cyclo-cross", "Piste"];
+    return {
+      disciplines: ["Route", "VTT", "Cyclo-cross", "Piste"],
+      types: [
+        { discipline: "Route", type: "circuit" },
+        { discipline: "Route", type: "course_ligne" },
+        { discipline: "Route", type: "u19" },
+        { discipline: "Route", type: "u23" },
+        { discipline: "VTT", type: "xc" },
+        { discipline: "VTT", type: "dh" },
+        { discipline: "VTT", type: "enduro" }
+      ]
+    };
   },
   
   // Mock function to get categories
