@@ -31,8 +31,8 @@ jobs:
       - name: Deploy to GAS
         env:
           CLASP_TOKEN_JSON: "${{ secrets.CLASP_TOKEN }}"
-          TEST_SCRIPT_ID: "${{ secrets.TEST_SCRIPT_ID }}"
-          TEST_DEPLOYMENT_ID: "${{ secrets.TEST_DEPLOYMENT_ID }}"
+          SCRIPT_ID: "${{ secrets.TEST_SCRIPT_ID }}"
+          DEPLOYMENT_ID: "${{ secrets.TEST_DEPLOYMENT_ID }}"
           DEPLOYMENT_SHA: "${{ github.sha }}"
         run: |
           bash .github/scripts/deploy.sh
